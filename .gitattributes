@@ -1,0 +1,46 @@
+# .gitattributes
+
+# 默认：所有文本文件提交时为 LF，检出时不强制转换
+* text=auto eol=lf
+
+# 前端项目（Vue + TypeScript）
+/music-client/**  text eol=lf
+/music-manage/**  text eol=lf
+
+# 后端项目
+/music-server/**   text eol=lf
+
+# 关键脚本：必须是 LF（防止 Windows 破坏）
+*.sh                  text eol=lf
+mvnw                  text eol=lf
+Dockerfile            text eol=lf
+*.dockerfile          text eol=lf
+docker-compose.yml    text eol=lf
+pom.xml               text eol=lf
+
+# Windows 批处理脚本：可以是 CRLF
+*.cmd                 text eol=crlf
+*.bat                 text eol=crlf
+*.ps1                 text eol=crlf
+
+# 文本文件统一使用 LF
+*.md      text eol=lf
+*.json    text eol=lf
+*.yml     text eol=lf
+*.yaml    text eol=lf
+*.xml     text eol=lf
+*.properties text eol=lf
+*.js      text eol=lf
+*.ts      text eol=lf
+*.vue     text eol=lf
+*.css     text eol=lf
+*.scss    text eol=lf
+*.html    text eol=lf
+*.java    text eol=lf
+
+# 二进制文件（禁止 Git 做任何换行符转换）
+*.mp3     -text
+*.jpg    -text
+*.png    -text
+*.zip    -text
+*.pdf    -text
