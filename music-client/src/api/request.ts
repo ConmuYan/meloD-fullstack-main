@@ -43,7 +43,7 @@ axios.interceptors.response.use(
           
           // 跳转到登录页面
           router.replace({
-            path: "/",
+            path: "/sign-in",
             query: {}
           });
           
@@ -53,10 +53,23 @@ axios.interceptors.response.use(
       
       if (error.response.status) {
         switch (error.response.status) {
+          // 400: 请求错误，可能是session失效
+          case 400:
+            // 如果用户已登录但请求失败，可能是session失效
+            if (store.getters.token && store.getters.userId) {
+              console.warn('请求失败，可能是session失效');
+              // 不自动清除状态，让具体页面处理
+            }
+            break;
           // 401: 未登录
           case 401:
+            // 清除登录状态
+            store.commit('setToken', false);
+            store.commit('clearUserInfo');
+            localStorage.removeItem('dataStore');
+            
             router.replace({
-              path: "/",
+              path: "/sign-in",
               query: {
                 // redirect: router.currentRoute.fullPath
               },
@@ -67,7 +80,7 @@ axios.interceptors.response.use(
             // 跳转登录页面，并将要浏览的页面fullPath传过去，登录成功后跳转需要访问的页面
             setTimeout(() => {
               router.replace({
-                path: "/",
+                path: "/sign-in",
                 query: {
                   // redirect: router.currentRoute.fullPath
                 },

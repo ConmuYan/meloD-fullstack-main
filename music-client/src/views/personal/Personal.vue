@@ -6,40 +6,98 @@
       </div>
       <div class="personal-msg">
         <div class="username">{{ personalInfo.username }}</div>
-<!--        <div class="introduction">{{ personalInfo.introduction }}</div>-->
-        <!-- 新增的用户信息展示区域 -->
-        <div class="user-info-details">
-          <div class="info-item">
-            <span class="label">性别：</span>
-            <span>
-              {{
-                personalInfo.userSex != null
-                    ? (personalInfo.userSex == '1'
-                        ? '男'
-                        : personalInfo.userSex == '0'
-                            ? '女'
-                            : '保密')
-                    : '未设置'
-              }}
-            </span>
+        <div class="user-subtitle">{{ personalInfo.introduction || '这个人很懒，什么也没留下' }}</div>
+        
+        <!-- 用户信息卡片 -->
+        <div class="user-info-cards">
+          <div class="info-card">
+            <div class="card-icon">
+              <svg viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+              </svg>
+            </div>
+            <div class="card-content">
+              <div class="card-label">性别</div>
+              <div class="card-value">
+                {{
+                  personalInfo.userSex != null
+                      ? (personalInfo.userSex == '1'
+                          ? '男'
+                          : personalInfo.userSex == '0'
+                              ? '女'
+                              : '保密')
+                       : '未设置'
+                 }}
+              </div>
+            </div>
           </div>
-          <div class="info-item">
-            <span class="label">生日：</span>
-            <span>
-              {{
-                personalInfo.birth
-                    ? new Date(personalInfo.birth).toLocaleDateString('zh-CN')
-                    : '未设置'
-              }}
-            </span>
+          
+          <div class="info-card">
+            <div class="card-icon">
+              <svg viewBox="0 0 24 24" fill="currentColor">
+                <path d="M19 3h-1V1h-2v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V8h14v11zM7 10h5v5H7z"/>
+              </svg>
+            </div>
+            <div class="card-content">
+              <div class="card-label">生日</div>
+              <div class="card-value">
+                {{
+                  personalInfo.birth
+                      ? new Date(personalInfo.birth).toLocaleDateString('zh-CN')
+                      : '未设置'
+                }}
+              </div>
+            </div>
           </div>
-          <div class="info-item">
-            <span class="label">地区：</span>
-            <span>{{ personalInfo.location || '未设置' }}</span>
+          
+          <div class="info-card">
+            <div class="card-icon">
+              <svg viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+              </svg>
+            </div>
+            <div class="card-content">
+              <div class="card-label">地区</div>
+              <div class="card-value">{{ personalInfo.location || '未设置' }}</div>
+            </div>
           </div>
-          <div class="info-item">
-            <span class="label">签名：</span>
-            <span>{{ personalInfo.introduction || '这个人很懒，什么也没留下' }}</span>
+          
+          <div class="info-card contact-row">
+            <div class="contact-item">
+              <div class="card-icon">
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/>
+                </svg>
+              </div>
+              <div class="card-content">
+                <div class="card-label">手机</div>
+                <div class="card-value">{{ personalInfo.phoneNum || '未设置' }}</div>
+              </div>
+            </div>
+            
+            <div class="contact-item">
+              <div class="card-icon">
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>
+                </svg>
+              </div>
+              <div class="card-content">
+                <div class="card-label">邮箱</div>
+                <div class="card-value">{{ personalInfo.email || '未设置' }}</div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="info-card full-width">
+            <div class="card-icon">
+              <svg viewBox="0 0 24 24" fill="currentColor">
+                <path d="M20 2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h4l4 4 4-4h4c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-7 9h-2V9h2v2zm0-4h-2V5h2v2z"/>
+              </svg>
+            </div>
+            <div class="card-content">
+              <div class="card-label">个人签名</div>
+              <div class="card-value signature">{{ personalInfo.introduction || '这个人很懒，什么也没留下' }}</div>
+            </div>
           </div>
         </div>
       </div>
@@ -65,7 +123,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, nextTick, ref, computed, watch, reactive, onActivated } from "vue";
+import { defineComponent, nextTick, ref, computed, watch, reactive, onActivated, getCurrentInstance } from "vue";
 import { useStore } from "vuex";
 import { Edit } from "@element-plus/icons-vue";
 import { ElMessage } from "element-plus";
@@ -84,6 +142,7 @@ export default defineComponent({
   },
   setup() {
     const store = useStore();
+    const { proxy } = getCurrentInstance() as any;
 
     const { routerManager } = mixin();
 
@@ -96,6 +155,8 @@ export default defineComponent({
       birth: "",
       location: "",
       introduction: "",
+      phoneNum: "",
+      email: "",
     });
     const userId = computed(() => store.getters.userId);
     const userPic = computed(() => store.getters.userPic);
@@ -116,6 +177,8 @@ export default defineComponent({
           personalInfo.birth = userData.birth;
           personalInfo.introduction = userData.introduction || '';
           personalInfo.location = userData.location || '';
+          personalInfo.phoneNum = userData.phoneNum || '';
+          personalInfo.email = userData.email || '';
         } else {
           console.error('获取用户信息失败:', result);
           ElMessage.error('获取用户信息失败');
@@ -178,22 +241,55 @@ export default defineComponent({
     }
 
     nextTick(async () => {
-      await getUserInfo(userId.value);
-      await getCollection(userId.value);
-      await getCollectedPlaylists(userId.value);
+      // 检查用户是否已登录
+      if (!userId.value) {
+        console.warn('用户未登录，跳过数据加载');
+        return;
+      }
+      
+      try {
+        await getUserInfo(userId.value);
+        await getCollection(userId.value);
+        await getCollectedPlaylists(userId.value);
+      } catch (error: any) {
+        console.error('加载个人页面数据失败:', error);
+        // 如果是认证相关错误，清除用户状态并跳转到登录页
+        if (error?.response?.status === 400 || error?.response?.status === 401) {
+          proxy.$store.commit('setToken', false);
+          proxy.$store.commit('clearUserInfo');
+          localStorage.removeItem('dataStore');
+          proxy.$router.replace('/sign-in');
+        }
+      }
     });
 
     // 当组件被激活时重新加载数据
     onActivated(async () => {
-      await getCollectedPlaylists(userId.value);
+      if (userId.value) {
+        try {
+          await getCollectedPlaylists(userId.value);
+        } catch (error) {
+          console.error('重新加载收藏歌单失败:', error);
+        }
+      }
     });
 
     // 监听用户ID变化
     watch(userId, async (newUserId) => {
       if (newUserId) {
-        await getUserInfo(newUserId);
-        await getCollection(newUserId);
-        await getCollectedPlaylists(newUserId);
+        try {
+          await getUserInfo(newUserId);
+          await getCollection(newUserId);
+          await getCollectedPlaylists(newUserId);
+        } catch (error: any) {
+          console.error('用户ID变化后加载数据失败:', error);
+          if (error?.response?.status === 400 || error?.response?.status === 401) {
+            proxy.$store.commit('setToken', false);
+            proxy.$store.commit('clearUserInfo');
+            localStorage.removeItem('dataStore');
+            proxy.$router.replace('/sign-in');
+          }
+        }
       }
     });
 
@@ -284,7 +380,7 @@ export default defineComponent({
       font-size: 38px;
       font-weight: 800;
       color: #2c3e50;
-      margin-bottom: 35px;
+      margin-bottom: 15px;
       letter-spacing: 1.5px;
       text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
       position: relative;
@@ -302,40 +398,39 @@ export default defineComponent({
       }
     }
 
-    .introduction {
-      font-size: 18px;
+    .user-subtitle {
+      font-size: 16px;
       font-weight: 500;
       color: #7f8c8d;
-      margin-bottom: 20px;
+      margin-bottom: 35px;
+      font-style: italic;
+      line-height: 1.5;
     }
   }
   
-  /* 优化的用户信息详情样式 */
-  .user-info-details {
+  /* 新的卡片式用户信息样式 */
+  .user-info-cards {
     margin-top: 30px;
-    font-size: 16px;
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
     gap: 20px;
-    max-width: 800px;
+    max-width: 900px;
     margin-left: auto;
     margin-right: auto;
     padding: 0 20px;
 
-    .info-item {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 20px 28px;
-        background: linear-gradient(135deg, rgba(52, 152, 219, 0.06), rgba(255, 255, 255, 0.9));
-        border-radius: 16px;
-        border: 1px solid rgba(52, 152, 219, 0.12);
-        border-left: 4px solid #3498db;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        position: relative;
-        overflow: hidden;
-        min-height: 60px;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    .info-card {
+      display: flex;
+      align-items: center;
+      padding: 24px;
+      background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(248, 250, 252, 0.9));
+      border-radius: 16px;
+      border: 1px solid rgba(226, 232, 240, 0.8);
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
+      backdrop-filter: blur(10px);
       
       &::before {
         content: '';
@@ -344,57 +439,139 @@ export default defineComponent({
         left: 0;
         right: 0;
         bottom: 0;
-        background: linear-gradient(135deg, rgba(52, 152, 219, 0.08), transparent);
+        background: linear-gradient(135deg, rgba(59, 130, 246, 0.05), rgba(147, 197, 253, 0.05));
         opacity: 0;
         transition: opacity 0.3s ease;
       }
       
       &:hover {
-        background: linear-gradient(135deg, rgba(52, 152, 219, 0.1), rgba(255, 255, 255, 0.95));
-        transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(52, 152, 219, 0.15);
-        border-color: rgba(52, 152, 219, 0.25);
+        transform: translateY(-4px);
+        box-shadow: 0 12px 40px rgba(59, 130, 246, 0.15);
+        border-color: rgba(59, 130, 246, 0.2);
         
         &::before {
           opacity: 1;
         }
+        
+        .card-icon {
+          transform: scale(1.1);
+          color: #3b82f6;
+        }
       }
-
-      .label {
-          color: #2c3e50;
-          font-weight: 600;
-          font-size: 15px;
-          letter-spacing: 0.3px;
-          position: relative;
-          z-index: 1;
-          white-space: nowrap;
-          min-width: 60px;
-          text-align: left;
-          flex-shrink: 0;
+      
+      &.full-width {
+        grid-column: 1 / -1;
+        
+        .card-content {
+          .card-value.signature {
+            font-style: italic;
+            color: #6b7280;
+            line-height: 1.6;
+            text-align: left;
+          }
         }
-
-        span:not(.label) {
-          color: #34495e;
-          font-weight: 500;
-          line-height: 1.5;
-          text-align: right;
-          position: relative;
-          z-index: 1;
+      }
+      
+      &.contact-row {
+        grid-column: 1 / -1;
+        display: flex;
+        gap: 20px;
+        
+        .contact-item {
           flex: 1;
-          margin-left: 16px;
-          word-break: break-word;
+          display: flex;
+          align-items: center;
+          
+          .card-icon {
+            margin-right: 16px;
+          }
         }
+      }
     }
     
-    /* 特殊处理签名项，让它占据整行 */
-    .info-item:last-child {
-      grid-column: 1 / -1;
+    .card-icon {
+      width: 48px;
+      height: 48px;
+      margin-right: 20px;
+      color: #64748b;
+      transition: all 0.3s ease;
+      flex-shrink: 0;
       
-      span:not(.label) {
-        font-style: italic;
-        color: #7f8c8d;
-        text-align: left;
-        margin-left: 16px;
+      svg {
+        width: 100%;
+        height: 100%;
+      }
+    }
+    
+    .card-content {
+      flex: 1;
+      min-width: 0;
+      
+      .card-label {
+        font-size: 14px;
+        font-weight: 600;
+        color: #64748b;
+        margin-bottom: 8px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+      
+      .card-value {
+        font-size: 16px;
+        font-weight: 500;
+        color: #1e293b;
+        line-height: 1.4;
+        word-break: break-word;
+      }
+    }
+    
+    /* 响应式设计 */
+    @media (max-width: 768px) {
+      grid-template-columns: 1fr;
+      padding: 0 15px;
+      gap: 16px;
+      
+      .info-card {
+        padding: 20px;
+        
+        .card-icon {
+          width: 40px;
+          height: 40px;
+          margin-right: 16px;
+        }
+        
+        .card-content {
+          .card-label {
+            font-size: 13px;
+          }
+          
+          .card-value {
+            font-size: 15px;
+          }
+        }
+        
+        &.contact-row {
+          flex-direction: column;
+          gap: 16px;
+          
+          .contact-item {
+            .card-icon {
+              margin-right: 12px;
+            }
+          }
+        }
+      }
+    }
+    
+    @media (max-width: 480px) {
+      .info-card {
+        padding: 16px;
+        
+        .card-icon {
+          width: 36px;
+          height: 36px;
+          margin-right: 12px;
+        }
       }
     }
   }

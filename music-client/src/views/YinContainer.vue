@@ -56,16 +56,27 @@ export default {
       return !this.isLoggedIn && !this.isOnRegisterPage && !this.isOnLoginPage && this.isVisible;
     }
   },
-  mounted() {
+  async mounted() {
     if (localStorage.getItem("dataStore")) {
       this.$store.replaceState(
         Object.assign({}, this.$store.state, JSON.parse(localStorage.getItem("dataStore")))
       );
       this.$store.commit("setIsPlay", false);
       
-      // 检查用户登录状态的有效性，如果没有真正的登录会话就清除用户信息
-      if (this.$store.getters.userId && !this.hasValidSession()) {
-        this.$store.commit("clearUserInfo");
+      // 检查用户登录状态的有效性
+      if (this.$store.getters.userId) {
+        const isValidSession = await this.validateUserSession();
+        if (!isValidSession) {
+          // 清除无效的用户状态
+          this.$store.commit("setToken", false);
+          this.$store.commit("clearUserInfo");
+          localStorage.removeItem("dataStore");
+          
+          // 如果当前在需要登录的页面，跳转到首页
+          if (this.$route.meta?.requireAuth) {
+            this.$router.replace('/');
+          }
+        }
       }
     } else {
       this.$store.dispatch("initRandomSong");
@@ -81,7 +92,25 @@ export default {
       this.isVisible = false;
     },
     
-    // 检查是否有有效的登录会话
+    // 验证用户session的有效性
+     async validateUserSession() {
+       try {
+         // 尝试获取用户信息来验证session是否有效
+         const userId = this.$store.getters.userId;
+         if (!userId) return false;
+         
+         // 导入HttpManager
+         const { HttpManager } = await import('@/api');
+         const result = await HttpManager.getUserOfId(userId);
+         return result.success;
+       } catch (error) {
+         // 如果请求失败（如401、400等），说明session无效
+         console.log('Session验证失败:', error);
+         return false;
+       }
+     },
+    
+    // 检查是否有有效的登录会话（保留原方法作为备用）
     hasValidSession() {
       // 这里可以通过检查cookie、发送验证请求等方式来验证会话有效性
       // 简单起见，我们检查是否有相关的认证信息

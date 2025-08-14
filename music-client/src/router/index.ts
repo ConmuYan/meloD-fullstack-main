@@ -117,4 +117,36 @@ const router = createRouter({
   routes,
 });
 
+// 路由守卫
+router.beforeEach((to, from, next) => {
+  // 检查路由是否需要登录权限
+  if (to.matched.some(record => record.meta.requireAuth)) {
+    // 从localStorage获取store状态
+    const dataStore = localStorage.getItem('dataStore');
+    let isLoggedIn = false;
+    
+    if (dataStore) {
+      try {
+        const storeState = JSON.parse(dataStore);
+        isLoggedIn = storeState.configure?.token && storeState.user?.userId;
+      } catch (error) {
+        console.error('解析localStorage数据失败:', error);
+        localStorage.removeItem('dataStore');
+      }
+    }
+    
+    if (!isLoggedIn) {
+      // 未登录，跳转到登录页
+      next({
+        path: '/sign-in',
+        query: { redirect: to.fullPath }
+      });
+    } else {
+      next();
+    }
+  } else {
+    next();
+  }
+});
+
 export default router;
