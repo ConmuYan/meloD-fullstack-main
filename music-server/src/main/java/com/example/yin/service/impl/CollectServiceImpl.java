@@ -71,7 +71,7 @@ public class CollectServiceImpl extends ServiceImpl<CollectMapper, Collect> impl
             return R.success("未收藏", false);
         }
     }
-    
+
     @Override
     public R deleteSongListCollect(Integer userId, Integer songListId) {
         QueryWrapper<Collect> queryWrapper = new QueryWrapper();
@@ -86,10 +86,10 @@ public class CollectServiceImpl extends ServiceImpl<CollectMapper, Collect> impl
     }
     
     @Override
-    public R songListCollectionOfUser(Integer userId) {
+    public R songListCollectionOfUser(Integer userId, Byte type) {
         QueryWrapper<Collect> queryWrapper = new QueryWrapper();
         queryWrapper.eq("user_id", userId);
-        queryWrapper.eq("type", 1); // type=1 表示歌单
+        queryWrapper.eq("type", type); // type=1 表示歌单,type=2表示自己创建的歌单
         queryWrapper.orderByDesc("create_time"); // 按收藏时间倒序排列
         return R.success("用户收藏的歌单", collectMapper.selectList(queryWrapper));
     }

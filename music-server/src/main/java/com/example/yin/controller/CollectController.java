@@ -56,8 +56,8 @@ public class CollectController {
     
     // 返回指定用户收藏的歌单列表
     @GetMapping("/collection/songList/detail")
-    public R songListCollectionOfUser(@RequestParam Integer userId) {
-        return collectService.songListCollectionOfUser(userId);
+    public R songListCollectionOfUser(@RequestParam Integer userId, @RequestParam Byte type) {
+        return collectService.songListCollectionOfUser(userId, type);
     }
     
     // 返回指定用户收藏的歌曲列表（区分歌曲和歌单）

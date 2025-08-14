@@ -1,3 +1,4 @@
+
 <template>
   <el-container>
     <el-aside class="album-slide">
@@ -9,11 +10,11 @@
       <p>{{ songDetails.introduction }}</p>
       <!--收藏歌单-->
       <div class="collection-section">
-        <el-button 
-          :type="isCollected ? 'danger' : 'primary'"
-          :icon="isCollected ? 'el-icon-star-on' : 'el-icon-star-off'"
-          @click="toggleCollection"
-          round
+        <el-button
+            :type="isCollected ? 'danger' : 'primary'"
+            :icon="isCollected ? 'el-icon-star-on' : 'el-icon-star-off'"
+            @click="toggleCollection"
+            round
         >
           {{ isCollected ? '取消收藏' : '收藏歌单' }}
         </el-button>
@@ -63,12 +64,13 @@ export default defineComponent({
     const disabledRank = ref(false);
     const assistText = ref("评价");
     const isCollected = ref(false); // 收藏状态
+    const isCreated = ref(false); // 是否是用户创建的歌单
     // const evaluateList = ref(["很差", "较差", "还行", "推荐", "力推"]);
     const songDetails = computed(() => store.getters.songDetails); // 单个歌单信息
     const nowUserId = computed(() => store.getters.userId);
-  
+
     nowSongListId.value = songDetails.value.id; // 给歌单ID赋值
-  
+
     // 收集歌单里面的歌曲
     async function getSongId(id) {
       const result = (await HttpManager.getListSongOfSongId(id)) as ResponseBody;
@@ -94,7 +96,7 @@ export default defineComponent({
     async function checkCollectionStatus() {
       if (!checkStatus()) return;
       try {
-        const result = (await HttpManager.getSongListCollectionOfUser(nowUserId.value)) as ResponseBody;
+        const result = (await HttpManager.getSongListCollectionOfUser(nowUserId.value, {type : 1})) as ResponseBody;
         if (result.success && result.data) {
           isCollected.value = result.data.some(item => item.songListId == nowSongListId.value);
         } else {
@@ -103,6 +105,22 @@ export default defineComponent({
       } catch (error) {
         console.error(error);
         isCollected.value = false;
+      }
+    }
+
+    // 检查创建状态
+    async function checkCreatedStatus() {
+      if (!checkStatus()) return;
+      try {
+        const result = (await HttpManager.getSongListCollectionOfUser(nowUserId.value, {type : 2})) as ResponseBody;
+        if (result.success && result.data) {
+          isCreated.value = result.data.some(item => item.songListId == nowSongListId.value);
+        } else {
+          isCreated.value = false;
+        }
+      } catch (error) {
+        console.error(error);
+        isCreated.value = false;
       }
     }
 
@@ -123,12 +141,12 @@ export default defineComponent({
             songListId: nowSongListId.value
           })) as ResponseBody;
         }
-        
+
         ElMessage({
           message: result.message,
           type: result.success ? 'success' : 'error'
         });
-        
+
         if (result.success) {
           // 重新检查收藏状态以确保同步
           await checkCollectionStatus();
@@ -142,7 +160,7 @@ export default defineComponent({
     // 提交评分
     async function pushValue(value) {
       if (disabledRank.value || !checkStatus()) return;
-      
+
       // 如果评分为0，不允许提交
       if (!value || value === 0) {
         ElMessage.warning('请选择评分');
@@ -152,10 +170,10 @@ export default defineComponent({
       const songListId = nowSongListId.value;
       var consumerId = nowUserId.value;
       const score = value * 2; // 使用传入的value而不是nowScore.value
-      
+
       try {
         const result = (await HttpManager.setRank({songListId,consumerId,score})) as ResponseBody;
-        
+
         ElMessage({
           message: result.message,
           type: result.success ? 'success' : 'error'
@@ -182,6 +200,7 @@ export default defineComponent({
       getRank(nowSongListId.value); // 获取评分
       getSongId(nowSongListId.value); // 获取歌单里面的歌曲ID
       checkCollectionStatus(); // 检查收藏状态
+      checkCreatedStatus();//检查创建状态
     });
 
     return {
@@ -234,7 +253,7 @@ export default defineComponent({
   /*收藏歌单*/
   .collection-section {
     margin: 20px 0;
-    
+
     .el-button {
       font-size: 16px;
       padding: 12px 24px;
