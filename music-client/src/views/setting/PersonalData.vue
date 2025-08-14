@@ -104,6 +104,8 @@
 <script lang="ts">
 import { defineComponent, computed, onMounted, getCurrentInstance, reactive} from "vue";
 import { useStore } from "vuex";
+import { useRouter } from "vue-router";
+import { ElMessage } from "element-plus";
 import mixin from "@/mixins/mixin";
 import { AREA, SignUpRules } from "@/enums";
 import { HttpManager } from "@/api";
@@ -113,6 +115,7 @@ export default defineComponent({
   setup() {
     const { proxy } = getCurrentInstance();
     const store = useStore();
+    const router = useRouter();
     const { goBack } = mixin();
 
     // 注册
@@ -133,7 +136,7 @@ export default defineComponent({
       if (!id || id === '' || id === 0) {
         console.warn('用户ID无效，跳过获取用户信息');
         // 如果用户ID无效，跳转到登录页
-        proxy.$router.replace('/sign-in');
+        router.replace('/sign-in');
         return;
       }
       
@@ -150,19 +153,19 @@ export default defineComponent({
           registerForm.userPic = result.data[0].avator;
         } else {
           console.error('获取用户信息失败：用户不存在');
-          proxy.$message({
+          ElMessage({
             message: '用户信息获取失败，请重新登录',
             type: 'error'
           });
-          proxy.$router.replace('/sign-in');
+          router.replace('/sign-in');
         }
       } catch (error) {
         console.error('获取用户信息失败:', error);
-        proxy.$message({
+        ElMessage({
           message: '获取用户信息失败，请重新登录',
           type: 'error'
         });
-        proxy.$router.replace('/sign-in');
+        router.replace('/sign-in');
       }
     }
 
@@ -183,12 +186,12 @@ export default defineComponent({
       const introduction = registerForm.introduction;
       const location = registerForm.location;
       const result = (await HttpManager.updateUserMsg({id,username,sex,phoneNum,email,birth,introduction,location})) as ResponseBody;
-      (proxy as any).$message({
+      ElMessage({
         message: result.message,
-        type: result.type,
+        type: result.type as 'success' | 'warning' | 'info' | 'error',
       });
       if (result.success) {
-        proxy.$store.commit("setUsername", registerForm.username);
+        store.commit("setUsername", registerForm.username);
         goBack(-1);
       }
     }
@@ -207,7 +210,7 @@ export default defineComponent({
               getUserInfo(retryUserId);
             } else {
               console.warn('用户未登录或session已失效');
-              proxy.$router.replace('/sign-in');
+              router.replace('/sign-in');
             }
           }, 100);
         }
