@@ -52,8 +52,14 @@ export default {
     isOnLoginPage() {
       return this.$route.path === '/sign-in';
     },
+    isOnEmailLoginPage() {
+      return this.$route.path === '/loginByemail';
+    },
+    isOnForgotPasswordPage() {
+      return this.$route.path === '/FPassword';
+    },
     showAnnouncement() {
-      return !this.isLoggedIn && !this.isOnRegisterPage && !this.isOnLoginPage && this.isVisible;
+      return !this.isLoggedIn && !this.isOnRegisterPage && !this.isOnLoginPage && !this.isOnEmailLoginPage && !this.isOnForgotPasswordPage && this.isVisible;
     }
   },
   async mounted() {
