@@ -129,15 +129,41 @@ export default defineComponent({
     const userId = computed(() => store.getters.userId);
 
     async function getUserInfo(id) {
-      const result = (await HttpManager.getUserOfId(id)) as ResponseBody;
-      registerForm.username = result.data[0].username;
-      registerForm.sex = result.data[0].sex;
-      registerForm.phoneNum = result.data[0].phoneNum;
-      registerForm.email = result.data[0].email;
-      registerForm.birth = result.data[0].birth;
-      registerForm.introduction = result.data[0].introduction;
-      registerForm.location = result.data[0].location;
-      registerForm.userPic = result.data[0].avator;
+      // 验证用户ID的有效性
+      if (!id || id === '' || id === 0) {
+        console.warn('用户ID无效，跳过获取用户信息');
+        // 如果用户ID无效，跳转到登录页
+        proxy.$router.replace('/sign-in');
+        return;
+      }
+      
+      try {
+        const result = (await HttpManager.getUserOfId(id)) as ResponseBody;
+        if (result.success && result.data && result.data.length > 0) {
+          registerForm.username = result.data[0].username;
+          registerForm.sex = result.data[0].sex;
+          registerForm.phoneNum = result.data[0].phoneNum;
+          registerForm.email = result.data[0].email;
+          registerForm.birth = result.data[0].birth;
+          registerForm.introduction = result.data[0].introduction;
+          registerForm.location = result.data[0].location;
+          registerForm.userPic = result.data[0].avator;
+        } else {
+          console.error('获取用户信息失败：用户不存在');
+          proxy.$message({
+            message: '用户信息获取失败，请重新登录',
+            type: 'error'
+          });
+          proxy.$router.replace('/sign-in');
+        }
+      } catch (error) {
+        console.error('获取用户信息失败:', error);
+        proxy.$message({
+          message: '获取用户信息失败，请重新登录',
+          type: 'error'
+        });
+        proxy.$router.replace('/sign-in');
+      }
     }
 
     async function saveMsg() {
@@ -168,7 +194,27 @@ export default defineComponent({
     }
 
     onMounted(() => {
-      getUserInfo(userId.value);
+      // 延迟检查用户状态，确保store已经从localStorage恢复
+      const checkUserAndLoad = () => {
+        const currentUserId = userId.value;
+        if (currentUserId && currentUserId !== '' && currentUserId !== 0) {
+          getUserInfo(currentUserId);
+        } else {
+          // 如果用户ID仍然无效，再等待一段时间后重试
+          setTimeout(() => {
+            const retryUserId = userId.value;
+            if (retryUserId && retryUserId !== '' && retryUserId !== 0) {
+              getUserInfo(retryUserId);
+            } else {
+              console.warn('用户未登录或session已失效');
+              proxy.$router.replace('/sign-in');
+            }
+          }, 100);
+        }
+      };
+      
+      // 立即检查一次，如果失败则延迟重试
+      checkUserAndLoad();
     });
 
     return {

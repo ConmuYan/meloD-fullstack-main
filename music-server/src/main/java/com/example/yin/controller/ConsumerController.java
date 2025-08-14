@@ -64,20 +64,33 @@ public class ConsumerController {
     @PostMapping("/user/resetPassword")
     public R resetPassword(@RequestBody ResetPasswordRequest passwordRequest){
         Consumer user = consumerService.findByEmail(passwordRequest.getEmail());
-        String code = stringRedisTemplate.opsForValue().get("code");
         if (user==null){
             return R.fatal("用户不存在");
-        }else if (!code.equals(passwordRequest.getCode())){
-            return R.fatal("验证码不存在或失效");
         }
-        ConsumerRequest consumerRequest=new ConsumerRequest();
-        BeanUtils.copyProperties(user, consumerRequest);
-        System.out.println(user);
-        System.out.println(consumerRequest);
-        consumerRequest.setPassword(passwordRequest.getPassword());
-        consumerServiceimpl.updatePassword01(consumerRequest);
-
-        return R.success("密码修改成功");
+        
+        // 从Redis中获取该邮箱对应的验证码
+        String storedCode = stringRedisTemplate.opsForValue().get("code:" + passwordRequest.getEmail());
+        if (storedCode == null){
+            return R.fatal("验证码已失效，请重新获取");
+        }
+        if (!storedCode.equals(passwordRequest.getCode())){
+            return R.fatal("验证码错误");
+        }
+        
+        try {
+            ConsumerRequest consumerRequest=new ConsumerRequest();
+            BeanUtils.copyProperties(user, consumerRequest);
+            consumerRequest.setPassword(passwordRequest.getPassword());
+            consumerServiceimpl.updatePassword01(consumerRequest);
+            
+            // 密码重置成功后删除验证码
+            stringRedisTemplate.delete("code:" + passwordRequest.getEmail());
+            
+            return R.success("密码修改成功");
+        } catch (Exception e) {
+            System.err.println("密码重置失败: " + e.getMessage());
+            return R.fatal("密码重置失败，请稍后重试");
+        }
     }
 
     /**
@@ -89,11 +102,17 @@ public class ConsumerController {
         if (user==null){
             return R.fatal("用户不存在");
         }
-        String code = RandomUtils.code();
-        simpleOrderManager.sendCode(code,email);
-        //保存在redis中
-        stringRedisTemplate.opsForValue().set("code",code,5, TimeUnit.MINUTES);
-        return R.success("发送成功");
+        
+        try {
+            String code = RandomUtils.code();
+            simpleOrderManager.sendCode(code,email);
+            //保存在redis中，使用邮箱作为key的一部分避免冲突
+            stringRedisTemplate.opsForValue().set("code:" + email, code, 5, TimeUnit.MINUTES);
+            return R.success("验证码发送成功，请查收邮件");
+        } catch (Exception e) {
+            System.err.println("发送验证码失败: " + e.getMessage());
+            return R.fatal("验证码发送失败，请检查邮箱地址或稍后重试");
+        }
     }
 
 

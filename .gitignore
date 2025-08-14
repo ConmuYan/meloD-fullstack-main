@@ -79,3 +79,9 @@ node_modules/
 Thumbs.db
 dump.rdb
 minio.exe
+
+# 确保 music-client 和 music-manage 的 assets 目录不被忽略
+!music-client/src/assets/
+!music-client/src/assets/**
+!music-manage/src/assets/
+!music-manage/src/assets/**

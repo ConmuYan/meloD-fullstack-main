@@ -158,6 +158,12 @@ export default defineComponent({
       phoneNum: "",
       email: "",
     });
+    
+    // 添加加载状态管理，防止重复请求
+    const isLoadingUserInfo = ref(false);
+    const isLoadingCollection = ref(false);
+    const isLoadingPlaylists = ref(false);
+    const hasInitialized = ref(false); // 标记是否已经初始化过
     const userId = computed(() => store.getters.userId);
     const userPic = computed(() => store.getters.userPic);
     watch(userPic, () => {
@@ -168,6 +174,12 @@ export default defineComponent({
       routerManager(RouterName.Setting, { path: RouterName.Setting });
     }
     async function getUserInfo(id) {
+      if (isLoadingUserInfo.value) {
+        console.log('用户信息正在加载中，跳过重复请求');
+        return;
+      }
+      
+      isLoadingUserInfo.value = true;
       try {
         const result = (await HttpManager.getUserOfId(id)) as ResponseBody;
         if (result.success && result.data && result.data.length > 0) {
@@ -186,10 +198,18 @@ export default defineComponent({
       } catch (error) {
         console.error('获取用户信息异常:', error);
         ElMessage.error('获取用户信息异常');
+      } finally {
+        isLoadingUserInfo.value = false;
       }
     }
     // 获取收藏的歌曲（从"我喜欢"歌单或直接收藏的歌曲）
     async function getCollection(id) {
+      if (isLoadingCollection.value) {
+        console.log('收藏歌曲正在加载中，跳过重复请求');
+        return;
+      }
+      
+      isLoadingCollection.value = true;
       try {
         // 首先尝试创建"我喜欢"歌单
         await HttpManager.createMyFavoriteSongList(id);
@@ -209,11 +229,19 @@ export default defineComponent({
         }
       } catch (error) {
         console.error('获取收藏歌曲失败:', error);
+      } finally {
+        isLoadingCollection.value = false;
       }
     }
     
     // 获取收藏的歌单
     async function getCollectedPlaylists(id) {
+      if (isLoadingPlaylists.value) {
+        console.log('收藏歌单正在加载中，跳过重复请求');
+        return;
+      }
+      
+      isLoadingPlaylists.value = true;
       try {
         const result = (await HttpManager.getSongListCollectionOfUser(id)) as ResponseBody;
         if (result.success && result.data) {
@@ -232,27 +260,46 @@ export default defineComponent({
         }
       } catch (error) {
         console.error('获取收藏歌单失败:', error);
+      } finally {
+        isLoadingPlaylists.value = false;
       }
     }
 
     async function changeData() {
-      await getCollection(userId.value);
-      await getCollectedPlaylists(userId.value);
+      // 强制刷新数据，重置加载状态
+      isLoadingCollection.value = false;
+      isLoadingPlaylists.value = false;
+      
+      if (userId.value) {
+        await Promise.all([
+          getCollection(userId.value),
+          getCollectedPlaylists(userId.value)
+        ]);
+      }
     }
 
-    nextTick(async () => {
-      // 检查用户是否已登录
-      if (!userId.value) {
+    // 统一的数据加载函数
+    async function loadAllData(id) {
+      if (hasInitialized.value) {
+        console.log('数据已初始化，跳过重复加载');
+        return;
+      }
+      
+      if (!id) {
         console.warn('用户未登录，跳过数据加载');
         return;
       }
       
       try {
-        await getUserInfo(userId.value);
-        await getCollection(userId.value);
-        await getCollectedPlaylists(userId.value);
+        hasInitialized.value = true;
+        await Promise.all([
+          getUserInfo(id),
+          getCollection(id),
+          getCollectedPlaylists(id)
+        ]);
       } catch (error: any) {
         console.error('加载个人页面数据失败:', error);
+        hasInitialized.value = false; // 加载失败时重置标记
         // 如果是认证相关错误，清除用户状态并跳转到登录页
         if (error?.response?.status === 400 || error?.response?.status === 401) {
           proxy.$store.commit('setToken', false);
@@ -261,35 +308,26 @@ export default defineComponent({
           proxy.$router.replace('/sign-in');
         }
       }
+    }
+
+    nextTick(async () => {
+      await loadAllData(userId.value);
     });
 
-    // 当组件被激活时重新加载数据
+    // 当组件被激活时，只在必要时重新加载数据
     onActivated(async () => {
-      if (userId.value) {
-        try {
-          await getCollectedPlaylists(userId.value);
-        } catch (error) {
-          console.error('重新加载收藏歌单失败:', error);
-        }
+      // 只有在数据未初始化时才加载
+      if (userId.value && !hasInitialized.value) {
+        await loadAllData(userId.value);
       }
     });
 
     // 监听用户ID变化
-    watch(userId, async (newUserId) => {
-      if (newUserId) {
-        try {
-          await getUserInfo(newUserId);
-          await getCollection(newUserId);
-          await getCollectedPlaylists(newUserId);
-        } catch (error: any) {
-          console.error('用户ID变化后加载数据失败:', error);
-          if (error?.response?.status === 400 || error?.response?.status === 401) {
-            proxy.$store.commit('setToken', false);
-            proxy.$store.commit('clearUserInfo');
-            localStorage.removeItem('dataStore');
-            proxy.$router.replace('/sign-in');
-          }
-        }
+    watch(userId, async (newUserId, oldUserId) => {
+      // 只有当用户ID真正发生变化时才重新加载数据
+      if (newUserId && newUserId !== oldUserId) {
+        hasInitialized.value = false; // 重置初始化标记
+        await loadAllData(newUserId);
       }
     });
 

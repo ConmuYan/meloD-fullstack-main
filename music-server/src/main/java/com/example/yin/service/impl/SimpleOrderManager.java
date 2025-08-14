@@ -54,9 +54,17 @@ public class SimpleOrderManager implements OrderManager {
                 mimeMessage.setRecipient(Message.RecipientType.TO,
                         new InternetAddress(reciveAddress));
                 mimeMessage.setFrom(new InternetAddress(sendAddress));
-                mimeMessage.setText("Dear you code is " + code);
+                mimeMessage.setSubject("验证码");
+                mimeMessage.setText("您的验证码是: " + code + "\n\n验证码有效期为5分钟，请及时使用。");
             }
         };
-        this.mailSender.send(preparator);
+        
+        try {
+            this.mailSender.send(preparator);
+            System.out.println("验证码邮件发送成功，收件人: " + reciveAddress);
+        } catch (MailException ex) {
+            System.err.println("验证码邮件发送失败: " + ex.getMessage());
+            throw new RuntimeException("邮件发送失败: " + ex.getMessage(), ex);
+        }
     }
 }

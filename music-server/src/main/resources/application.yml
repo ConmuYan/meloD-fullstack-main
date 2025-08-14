@@ -2,8 +2,8 @@ spring:
   mail:
     host: smtp.163.com # 网站发送邮件邮箱服务 host
     port: 465
-    username:   # 开启那个服务的邮箱
-    password:  # 开启服务的那个认证码
+    username: mqkim0525@163.com   # 请填写您的163邮箱地址
+    password: JRbWC33LbDyeBUB6  # 请填写您的163邮箱授权码（不是登录密码）
     properties:
       mail:
         smtp:
@@ -13,7 +13,7 @@ spring:
           starttls:
             enable: true
 mail:
-  address:   # 开启那个服务的邮箱
+  address: mqkim0525@163.com   # 请填写您的163邮箱地址（与上面保持一致）
 
 mybatis-plus:
   configuration:
@@ -21,6 +21,6 @@ mybatis-plus:
 
 minio:
   endpoint: http://localhost:9000
-  access-key: minioadmin
-  secret-key: minioadmin
-  bucket-name: music
+  access-key: root
+  secret-key: 123456789
+  bucket-name: user01
