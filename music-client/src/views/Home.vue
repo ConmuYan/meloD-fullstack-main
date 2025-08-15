@@ -1,5 +1,5 @@
 <template>
-  <!-- Hero Section with Modern Design -->
+  <!-- Hero Section -->
   <div class="hero-section">
     <div class="hero-background">
       <div class="gradient-overlay"></div>
@@ -7,12 +7,19 @@
         <div class="floating-circle circle-1"></div>
         <div class="floating-circle circle-2"></div>
         <div class="floating-circle circle-3"></div>
-        <!-- 添加更多微妙的装饰元素 -->
         <div class="floating-dot dot-1"></div>
         <div class="floating-dot dot-2"></div>
         <div class="floating-dot dot-3"></div>
       </div>
     </div>
+    
+    <div class="hero-decorations">
+      <div class="decoration decoration-1">♪</div>
+      <div class="decoration decoration-2">♫</div>
+      <div class="decoration decoration-3">♪</div>
+      <div class="decoration decoration-4">♫</div>
+    </div>
+    
     <div class="hero-content">
       <h1 class="hero-title">
         <span class="title-line">发现你的</span>
@@ -20,7 +27,6 @@
       </h1>
       <p class="hero-subtitle">探索无限音乐可能，让每一首歌都成为你的专属回忆</p>
       <div class="hero-actions">
-        <!-- 只保留开始探索按钮 -->
         <button class="cta-button primary" @click="exploreMusic">
           <span>开始探索</span>
           <div class="button-glow"></div>
@@ -29,13 +35,13 @@
     </div>
   </div>
 
-  <!-- Enhanced Carousel -->
-  <div class="featured-section" v-if="swiperList.length">
+  <!-- 修复轮播图：只显示推荐歌单 -->
+  <div class="featured-section" v-if="recommendationThemes.length">
     <h2 class="section-title">精选推荐</h2>
     <el-carousel class="modern-carousel" type="card" height="22vw" :interval="5000" indicator-position="outside">
-      <el-carousel-item v-for="(item, index) in swiperList" :key="index" class="carousel-item">
-        <div class="carousel-content">
-          <img :src="HttpManager.attachImageUrl(item.pic)" class="carousel-image" />
+      <el-carousel-item v-for="(item, index) in recommendationThemes.slice(0, 3)" :key="index" class="carousel-item">
+        <div class="carousel-content" @click="handleCarouselClick(item)">
+          <img :src="getImageUrl(item.pic)" class="carousel-image" alt="推荐歌单" />
           <div class="carousel-overlay">
             <div class="overlay-content">
               <h3>{{ item.title || '精选内容' }}</h3>
@@ -48,28 +54,30 @@
     </el-carousel>
   </div>
 
-  <!-- Enhanced Sections -->
+  <!-- 修复内容区域布局 -->
   <div class="content-sections">
-    <enhanced-play-list 
-      class="section-container" 
-      title="热门歌单" 
-      subtitle="精心挑选的音乐合集" 
-      path="song-sheet-detail" 
-      :playList="songList"
-      :maxDisplay="8"
-    ></enhanced-play-list>
+    <div class="section-container">
+      <enhanced-play-list 
+        title="热门歌单" 
+        subtitle="精心挑选的音乐合集" 
+        path="song-sheet-detail" 
+        :playList="songList"
+        :maxDisplay="8"
+      ></enhanced-play-list>
+    </div>
     
-    <enhanced-play-list 
-      class="section-container" 
-      title="推荐歌手" 
-      subtitle="才华横溢的音乐人" 
-      path="singer-detail" 
-      :playList="singerList"
-      :maxDisplay="8"
-    ></enhanced-play-list>
+    <div class="section-container">
+      <enhanced-play-list 
+        title="推荐歌手" 
+        subtitle="才华横溢的音乐人" 
+        path="singer-detail" 
+        :playList="singerList"
+        :maxDisplay="8"
+      ></enhanced-play-list>
+    </div>
   </div>
 
-  <!-- Stats Section -->
+  <!-- 统计数据区域 -->
   <div class="stats-section">
     <div class="stats-container">
       <div class="stat-item" v-for="(stat, index) in stats" :key="index">
@@ -81,8 +89,9 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, onMounted } from "vue";
+import { ref, onMounted, computed } from "vue";
 import { useRouter } from "vue-router";
+import { useStore } from "vuex";
 
 import EnhancedPlayList from "@/components/EnhancedPlayList.vue";
 import { NavName } from "@/enums";
@@ -90,10 +99,24 @@ import { HttpManager } from "@/api";
 import mixin from "@/mixins/mixin";
 
 const router = useRouter();
+const store = useStore();
 const songList = ref([]);
 const singerList = ref([]);
 const swiperList = ref([]);
+const recommendationThemes = ref([]);
 const { changeIndex } = mixin();
+
+// 修复图片URL处理
+const getImageUrl = (pic: string) => {
+  if (!pic) return '/img/songListPic/default.jpg';
+  if (pic.startsWith('http')) return pic;
+  return HttpManager.attachImageUrl(pic);
+};
+
+// 计算属性：检查用户是否登录
+const isLoggedIn = computed(() => {
+  return store.getters.isLogin;
+});
 
 // 统计数据
 const stats = ref([
@@ -105,16 +128,39 @@ const stats = ref([
 
 // 修复导航栏状态的探索音乐方法
 const exploreMusic = () => {
-  changeIndex(NavName.SongSheet); // 设置导航栏状态为歌单
+  changeIndex(NavName.SongSheet);
   router.push('/song-sheet');
 };
 
-// 数据加载 - 保持原有的业务逻辑不变
-try {
-  HttpManager.getBannerList().then((res) => {
-    swiperList.value = (res as ResponseBody).data.sort();
-  });
+// 获取推荐主题（用于轮播图）
+const getRecommendationThemes = async () => {
+  try {
+    // 添加时间戳参数，避免缓存
+    const timestamp = new Date().getTime();
+    const res = await HttpManager.getRecommendationThemes();
+    if (res && (res as ResponseBody).data && (res as ResponseBody).data.themes) {
+      recommendationThemes.value = (res as ResponseBody).data.themes;
+    }
+  } catch (error) {
+    console.error('获取推荐主题失败:', error);
+  }
+};
 
+// 修复轮播图点击事件
+const handleCarouselClick = (item: any) => {
+  // 推荐歌单，跳转到推荐歌单详情页
+  store.commit('setCurrentRecommendationPlaylist', item);
+  router.push({
+    path: '/recommendation-playlist',
+    query: {
+      id: item.id,
+      theme: item.theme
+    }
+  });
+};
+
+// 数据加载
+try {
   HttpManager.getSongList().then((res) => {
     songList.value = (res as ResponseBody).data.sort().slice(0, 8);
   });
@@ -125,6 +171,7 @@ try {
 
   onMounted(() => {
     changeIndex(NavName.Home);
+    getRecommendationThemes();
     
     // 添加滚动动画观察器
     const observerOptions = {
@@ -140,22 +187,18 @@ try {
       });
     }, observerOptions);
     
-    // 观察所有需要动画的元素
-    setTimeout(() => {
-      document.querySelectorAll('.section-container, .stats-section').forEach(el => {
-        observer.observe(el);
-      });
-    }, 100);
+    const animatedElements = document.querySelectorAll('.section-container, .stats-section');
+    animatedElements.forEach(el => observer.observe(el));
   });
 } catch (error) {
-  console.error(error);
+  console.error('数据加载失败:', error);
 }
 </script>
 
 <style lang="scss" scoped>
 @import "@/assets/css/var.scss";
 
-// 高级黑白灰风格的Hero Section
+// Hero Section样式
 .hero-section {
   position: relative;
   height: 75vh;
@@ -221,7 +264,6 @@ try {
         }
       }
       
-      // 添加微妙的装饰点
       .floating-dot {
         position: absolute;
         width: 6px;
@@ -251,58 +293,88 @@ try {
     }
   }
   
+  .hero-decorations {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+    
+    .decoration {
+      position: absolute;
+      font-size: 2rem;
+      color: rgba(255, 255, 255, 0.1);
+      animation: float 6s ease-in-out infinite;
+      
+      &.decoration-1 {
+        top: 15%;
+        left: 15%;
+        animation-delay: 0s;
+      }
+      
+      &.decoration-2 {
+        top: 25%;
+        right: 20%;
+        animation-delay: 1.5s;
+      }
+      
+      &.decoration-3 {
+        bottom: 30%;
+        left: 25%;
+        animation-delay: 3s;
+      }
+      
+      &.decoration-4 {
+        bottom: 20%;
+        right: 15%;
+        animation-delay: 4.5s;
+      }
+    }
+  }
+  
   .hero-content {
+    position: relative;
+    z-index: 10;
     text-align: center;
     color: white;
-    z-index: 2;
     max-width: 800px;
     padding: 0 2rem;
     
     .hero-title {
-      font-size: clamp(2.5rem, 8vw, 4.5rem);
-      font-weight: 700;
+      font-size: 4rem;
+      font-weight: 800;
       margin-bottom: 1.5rem;
       line-height: 1.2;
       
       .title-line {
         display: block;
-        opacity: 0;
-        transform: translateY(30px);
-        animation: slideInUp 1s ease forwards;
-        
-        &:nth-child(2) {
-          animation-delay: 0.3s;
-        }
         
         &.highlight {
-          background: linear-gradient(45deg, #ffffff, #e0e0e0);
+          background: linear-gradient(45deg, #ff6b6b, #4ecdc4, #45b7d1);
+          background-size: 200% 200%;
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
           background-clip: text;
+          animation: gradientShift 3s ease-in-out infinite;
         }
       }
     }
     
     .hero-subtitle {
       font-size: 1.25rem;
-      margin-bottom: 3rem;
-      opacity: 0;
-      color: #b0b0b0;
-      animation: slideInUp 1s ease 0.6s forwards;
+      margin-bottom: 2.5rem;
+      opacity: 0.9;
+      line-height: 1.6;
     }
     
     .hero-actions {
-      display: flex;
-      justify-content: center;
-      opacity: 0;
-      animation: slideInUp 1s ease 0.9s forwards;
-      
       .cta-button {
         position: relative;
         padding: 1rem 2.5rem;
-        border: none;
-        border-radius: 8px;
         font-size: 1.1rem;
+        border: none;
+        border-radius: 50px;
         font-weight: 600;
         cursor: pointer;
         transition: all 0.3s ease;
@@ -339,7 +411,7 @@ try {
   }
 }
 
-// 高级黑白灰风格的Featured Section
+// 轮播图样式
 .featured-section {
   padding: 4rem 2rem;
   background: linear-gradient(180deg, #f8f9fa 0%, #ffffff 100%);
@@ -349,96 +421,62 @@ try {
     font-size: 2.5rem;
     font-weight: 700;
     margin-bottom: 3rem;
-    color: #2c2c2c;
-    position: relative;
-    
-    &::after {
-      content: '';
-      position: absolute;
-      bottom: -10px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 80px;
-      height: 4px;
-      background: linear-gradient(90deg, #666666, #999999);
-      border-radius: 2px;
-    }
+    color: #2c3e50;
   }
   
   .modern-carousel {
-    max-width: 1200px;
-    margin: 0 auto;
-    
     .carousel-item {
-      border-radius: 12px;
-      overflow: hidden;
-      
       .carousel-content {
         position: relative;
         height: 100%;
+        border-radius: 12px;
+        overflow: hidden;
+        cursor: pointer;
+        transition: transform 0.3s ease;
+        
+        &:hover {
+          transform: scale(1.02);
+        }
         
         .carousel-image {
           width: 100%;
           height: 100%;
           object-fit: cover;
-          transition: transform 0.5s ease;
-          filter: grayscale(20%);
         }
         
         .carousel-overlay {
           position: absolute;
-          top: 0;
+          bottom: 0;
           left: 0;
           right: 0;
-          bottom: 0;
-          background: linear-gradient(45deg, rgba(0,0,0,0.8), rgba(0,0,0,0.4));
-          display: flex;
-          align-items: flex-end;
+          background: linear-gradient(transparent, rgba(0,0,0,0.8));
+          color: white;
           padding: 2rem;
-          opacity: 0;
-          transition: opacity 0.3s ease;
           
           .overlay-content {
-            color: white;
-            
             h3 {
               font-size: 1.5rem;
               margin-bottom: 0.5rem;
-              font-weight: 600;
             }
             
             p {
               margin-bottom: 1rem;
               opacity: 0.9;
-              color: #e0e0e0;
             }
             
             .overlay-button {
-              padding: 0.75rem 1.5rem;
-              background: rgba(255, 255, 255, 0.1);
-              border: 1px solid rgba(255, 255, 255, 0.3);
+              background: rgba(255,255,255,0.2);
+              border: 1px solid rgba(255,255,255,0.3);
               color: white;
+              padding: 0.5rem 1rem;
               border-radius: 6px;
               cursor: pointer;
-              backdrop-filter: blur(10px);
               transition: all 0.3s ease;
               
               &:hover {
-                background: rgba(255, 255, 255, 0.2);
-                transform: translateY(-2px);
+                background: rgba(255,255,255,0.3);
               }
             }
-          }
-        }
-        
-        &:hover {
-          .carousel-image {
-            transform: scale(1.03);
-            filter: grayscale(0%);
-          }
-          
-          .carousel-overlay {
-            opacity: 1;
           }
         }
       }
@@ -446,38 +484,36 @@ try {
   }
 }
 
-// 高级黑白灰风格的Content Sections
+// 内容区域样式 - 修复布局
 .content-sections {
-  padding: 2rem;
-  max-width: 1400px;
-  margin: 0 auto;
-  background: #fafafa;
+  padding: 4rem 2rem;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
   
   .section-container {
     margin-bottom: 4rem;
-    opacity: 0;
-    transform: translateY(40px);
-    transition: all 0.8s ease;
-    background: white;
-    border-radius: 12px;
-    padding: 2rem;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    padding: 3rem 2rem;
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 20px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    transition: all 0.3s ease;
     
-    &.animate-in {
-      opacity: 1;
-      transform: translateY(0);
+    &:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+    }
+    
+    &:last-child {
+      margin-bottom: 0;
     }
   }
 }
 
-// 修复并美化Stats Section
+// 统计数据区域样式 - 修复布局
 .stats-section {
   padding: 5rem 2rem;
-  background: linear-gradient(135deg, #2c2c2c 0%, #1a1a1a 100%);
-  color: white;
-  opacity: 0;
-  transform: translateY(50px);
-  transition: all 0.8s ease;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   position: relative;
   overflow: hidden;
   
@@ -488,55 +524,52 @@ try {
     left: 0;
     right: 0;
     bottom: 0;
-    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="50" cy="50" r="1" fill="%23ffffff" opacity="0.02"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>') repeat;
-    pointer-events: none;
-  }
-  
-  &.animate-in {
-    opacity: 1;
-    transform: translateY(0);
+    background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="50" cy="50" r="1" fill="%23ffffff" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>') repeat;
+    opacity: 0.3;
   }
   
   .stats-container {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 3rem;
-    max-width: 1000px;
-    margin: 0 auto;
     position: relative;
     z-index: 2;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 3rem;
+    max-width: 1200px;
+    margin: 0 auto;
     
     .stat-item {
       text-align: center;
-      padding: 2rem 1rem;
-      border-radius: 8px;
-      background: rgba(255, 255, 255, 0.05);
+      color: white;
+      padding: 2rem;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 15px;
       backdrop-filter: blur(10px);
-      border: 1px solid rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
       transition: all 0.3s ease;
       
       &:hover {
-        transform: translateY(-5px);
-        background: rgba(255, 255, 255, 0.08);
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        transform: translateY(-10px);
+        background: rgba(255, 255, 255, 0.15);
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
       }
       
       .stat-number {
-        font-size: 3rem;
-        font-weight: 700;
+        font-size: 3.5rem;
+        font-weight: 800;
         margin-bottom: 0.5rem;
-        background: linear-gradient(45deg, #ffffff, #e0e0e0);
+        background: linear-gradient(45deg, #ffffff, #f0f0f0);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         background-clip: text;
+        text-shadow: 0 0 30px rgba(255, 255, 255, 0.5);
         animation: numberGlow 2s ease-in-out infinite alternate;
       }
       
       .stat-label {
-        font-size: 1.1rem;
+        font-size: 1.2rem;
         opacity: 0.9;
-        color: #b0b0b0;
         font-weight: 500;
+        letter-spacing: 0.5px;
       }
     }
   }
@@ -544,12 +577,13 @@ try {
 
 // 动画定义
 @keyframes float {
-  0%, 100% {
-    transform: translateY(0px) rotate(0deg);
-  }
-  50% {
-    transform: translateY(-20px) rotate(180deg);
-  }
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-20px); }
+}
+
+@keyframes twinkle {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 1; }
 }
 
 @keyframes slideInUp {
@@ -559,23 +593,24 @@ try {
   }
 }
 
-@keyframes twinkle {
-  0%, 100% {
-    opacity: 0.3;
-    transform: scale(1);
+@keyframes numberGlow {
+  0% {
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
   }
-  50% {
-    opacity: 1;
-    transform: scale(1.2);
+  100% {
+    text-shadow: 0 0 25px rgba(255, 255, 255, 0.8), 0 0 35px rgba(255, 255, 255, 0.4);
   }
 }
 
-@keyframes numberGlow {
+@keyframes gradientShift {
   0% {
-    text-shadow: 0 0 5px rgba(255, 255, 255, 0.3);
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
   }
   100% {
-    text-shadow: 0 0 20px rgba(255, 255, 255, 0.6);
+    background-position: 0% 50%;
   }
 }
 
@@ -585,47 +620,78 @@ try {
     height: 65vh;
     min-height: 450px;
     
-    .hero-content {
-      .hero-actions {
-        .cta-button {
-          width: 100%;
-          max-width: 300px;
-        }
-      }
-    }
-  }
-  
-  .featured-section {
-    padding: 3rem 1rem;
-    
-    .modern-carousel {
-      height: 35vw !important;
-    }
-  }
-  
-  .content-sections {
-    padding: 1.5rem 1rem;
-    
-    .section-container {
-      margin-bottom: 3rem;
-      padding: 1.5rem;
-    }
-  }
-  
-  .stats-section {
-    padding: 3rem 1rem;
-    
-    .stats-container {
-      grid-template-columns: repeat(2, 1fr);
-      gap: 2rem;
+    .hero-section {
+      height: 65vh;
+      min-height: 450px;
       
-      .stat-item {
-        padding: 1.5rem 1rem;
+      .hero-content {
+        .hero-title {
+          font-size: 2.5rem;
+        }
         
-        .stat-number {
-          font-size: 2rem;
+        .hero-subtitle {
+          font-size: 1rem;
+        }
+        
+        .hero-actions {
+          .cta-button {
+            width: 100%;
+            max-width: 300px;
+            padding: 0.8rem 2rem;
+          }
         }
       }
+    }
+    
+    .featured-section {
+      padding: 3rem 1rem;
+      
+      .section-title {
+        font-size: 2rem;
+      }
+      
+      .modern-carousel {
+        height: 35vw !important;
+      }
+    }
+    
+    .content-sections {
+      padding: 2rem 1rem;
+      
+      .section-container {
+        margin-bottom: 2rem;
+        padding: 2rem 1rem;
+      }
+    }
+    
+    .stats-section {
+      padding: 3rem 1rem;
+      
+      .stats-container {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1.5rem;
+        
+        .stat-item {
+          padding: 1.5rem 1rem;
+          
+          .stat-number {
+            font-size: 2.5rem;
+          }
+          
+          .stat-label {
+            font-size: 1rem;
+          }
+        }
+      }
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .stats-section {
+    .stats-container {
+      grid-template-columns: 1fr;
+      gap: 1rem;
     }
   }
 }

@@ -9,4 +9,12 @@ export default createStore({
     user,
     song,
   },
+  state: {
+    currentRecommendationPlaylist: null,
+  },
+  mutations: {
+    setCurrentRecommendationPlaylist(state, playlist) {
+      state.currentRecommendationPlaylist = playlist;
+    },
+  },
 });
