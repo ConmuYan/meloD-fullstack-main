@@ -1,9 +1,12 @@
 package com.example.yin.controller;
 
 import com.example.yin.common.R;
+import com.example.yin.domain.Song;
 import com.example.yin.service.RecommendationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/recommendation")
