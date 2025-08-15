@@ -10,18 +10,7 @@
       
       <!-- 推荐歌单不显示收藏功能 -->
       
-      <!--评分-->
-      <div class="album-score">
-        <div>
-          <h3>歌单评分</h3>
-          <el-rate v-model="rank" allow-half disabled></el-rate>
-        </div>
-        <span>{{ rank * 2 }}</span>
-        <div>
-          <h3>{{ assistText }} {{ score * 2 }}</h3>
-          <el-rate allow-half v-model="score" :disabled="disabledRank" @change="pushValue"></el-rate>
-        </div>
-      </div>
+      <!-- 评分功能已移除 -->
       
       <!--歌曲-->
       <song-list class="album-body" :songList="currentSongList"></song-list>
@@ -55,18 +44,9 @@ const playlist = ref({
 });
 
 const currentSongList = ref([]);
-const nowScore = ref(0);
-const nowRank = ref(0);
-const disabledRank = ref(false);
-const assistText = ref('评价');
 const singers = ref([]);
 
 const nowUserId = computed(() => store.getters.userId);
-const rank = computed(() => nowRank.value);
-const score = computed({
-  get: () => nowScore.value,
-  set: (val) => nowScore.value = val
-});
 
 // 获取图片URL
 const attachImageUrl = (pic: string) => {
@@ -83,66 +63,7 @@ async function getSongId(songs: any[]) {
   }
 }
 
-// 获取评分
-async function getRank(id: string) {
-  try {
-    const result = (await HttpManager.getRankOfSongListId(id)) as ResponseBody;
-    nowRank.value = result.data / 2;
-  } catch (error) {
-    console.error('获取评分失败:', error);
-    nowRank.value = 0;
-  }
-}
-
-// 获取用户评分
-async function getUserRank(userId: string, songListId: string) {
-  try {
-    const result = (await HttpManager.getUserRank(userId, songListId)) as ResponseBody;
-    nowScore.value = result.data / 2;
-    disabledRank.value = true;
-    assistText.value = '已评价';
-  } catch (error) {
-    console.error('获取用户评分失败:', error);
-    nowScore.value = 0;
-    disabledRank.value = false;
-    assistText.value = '评价';
-  }
-}
-
-// 提交评分
-async function pushValue(value: number) {
-  if (disabledRank.value || !checkStatus()) return;
-  
-  if (!value || value === 0) {
-    ElMessage.warning('请选择评分');
-    return;
-  }
-
-  const songListId = playlist.value.id;
-  const consumerId = nowUserId.value;
-  const score = value * 2;
-  
-  try {
-    const result = (await HttpManager.setRank({songListId, consumerId, score})) as ResponseBody;
-    
-    ElMessage({
-      message: result.message,
-      type: result.success ? 'success' : 'error'
-    });
-
-    if (result.success) {
-      await getRank(playlist.value.id);
-      disabledRank.value = true;
-      assistText.value = '已评价';
-    } else {
-      nowScore.value = 0;
-    }
-  } catch (error) {
-    console.error('评分提交失败:', error);
-    ElMessage.error('评分提交失败，请重试');
-    nowScore.value = 0;
-  }
-}
+// 评分相关功能已移除
 
 // 加载推荐歌单数据
 const loadPlaylistData = async () => {
@@ -187,13 +108,6 @@ const loadSingers = async () => {
 onMounted(async () => {
   await loadPlaylistData();
   await loadSingers();
-  
-  if (playlist.value.id) {
-    if (nowUserId.value) {
-      await getUserRank(nowUserId.value, playlist.value.id);
-    }
-    await getRank(playlist.value.id);
-  }
 });
 </script>
 
@@ -239,28 +153,7 @@ onMounted(async () => {
     line-height: 1.6;
   }
   
-  .album-score {
-    display: flex;
-    align-items: center;
-    margin-bottom: 30px;
-    
-    > div {
-      margin-right: 30px;
-      
-      h3 {
-        margin-bottom: 10px;
-        font-size: 14px;
-        color: #666;
-      }
-    }
-    
-    > span {
-      font-size: 24px;
-      font-weight: bold;
-      color: #ff6b6b;
-      margin-right: 30px;
-    }
-  }
+  // 评分样式已移除
   
   .album-body {
     margin-bottom: 30px;
@@ -274,23 +167,14 @@ onMounted(async () => {
     padding: 20px;
     
     .album-img {
-      width: 150px;
-      height: 150px;
+      width: 300px;
+      height: 300px;
     }
   }
   
   .album-main {
     padding: 15px;
-    
-    .album-score {
-      flex-direction: column;
-      align-items: flex-start;
-      
-      > div, > span {
-        margin-right: 0;
-        margin-bottom: 15px;
-      }
-    }
+    // 评分响应式样式已移除
   }
 }
 </style>

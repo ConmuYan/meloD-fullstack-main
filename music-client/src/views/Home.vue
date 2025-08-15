@@ -3,11 +3,11 @@
   <div class="hero-section">
     <div class="hero-background">
       <!-- 视频背景 -->
-      <video 
-        :class="['hero-video', { 'loaded': videoLoaded }]" 
-        autoplay 
-        muted 
-        loop 
+      <video
+        :class="['hero-video', { 'loaded': videoLoaded }]"
+        autoplay
+        muted
+        loop
         playsinline
         @loadstart="onVideoLoadStart"
         @canplay="onVideoCanPlay"
@@ -56,6 +56,11 @@
         <div class="stat-label">{{ stat.label }}</div>
       </div>
     </div>
+  </div>
+
+  <!-- 新的推荐主题轮播图 -->
+  <div class="recommendation-section">
+    <RecommendationCarousel />
   </div>
 
   <!-- Enhanced Carousel -->
@@ -109,6 +114,7 @@ import { useRouter } from "vue-router";
 import { useStore } from "vuex";
 
 import EnhancedPlayList from "@/components/EnhancedPlayList.vue";
+import RecommendationCarousel from "@/components/RecommendationCarousel.vue";
 import { NavName } from "@/enums";
 import { HttpManager } from "@/api";
 import mixin from "@/mixins/mixin";
@@ -790,6 +796,11 @@ try {
       .modern-carousel {
         height: 35vw !important;
       }
+    }
+    
+    .recommendation-section {
+      padding: 2rem 1rem;
+      margin-bottom: 2rem;
     }
     
     .content-sections {

@@ -23,6 +23,8 @@ pom.xml               text eol=lf
 *.bat                 text eol=crlf
 *.ps1                 text eol=crlf
 
+*.mp4 binary
+
 # 文本文件统一使用 LF
 *.md      text eol=lf
 *.json    text eol=lf

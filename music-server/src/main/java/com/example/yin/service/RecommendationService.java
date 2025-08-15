@@ -44,4 +44,11 @@ public interface RecommendationService {
      * @return 游客推荐歌单列表
      */
     List<Map<String, Object>> getGuestRecommendationPlaylists();
+    
+    /**
+     * 获取用户的推荐歌单（已生成的）
+     * @param userId 用户ID
+     * @return 用户推荐歌单列表
+     */
+    List<Map<String, Object>> getUserRecommendationPlaylists(Integer userId);
 }

@@ -1,7 +1,7 @@
 package com.example.yin.controller;
 
 import com.example.yin.common.R;
-import com.example.yin.domain.Song;
+import com.example.yin.model.domain.Song;
 import com.example.yin.service.RecommendationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -94,7 +94,7 @@ public class RecommendationController {
     @GetMapping("/playlists/{userId}")
     public R getUserRecommendationPlaylists(@PathVariable Integer userId) {
         try {
-            return R.success("获取成功", recommendationService.generateUserRecommendationPlaylists(userId));
+            return R.success("获取成功", recommendationService.getUserRecommendationPlaylists(userId));
         } catch (Exception e) {
             return R.error("获取失败");
         }

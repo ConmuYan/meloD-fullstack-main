@@ -348,4 +348,12 @@ public class RecommendationServiceImpl implements RecommendationService {
         result.put("themes", themes);
         return result;
     }
+    
+    @Override
+    public List<Map<String, Object>> getUserRecommendationPlaylists(Integer userId) {
+        // 获取用户的推荐歌单（实际上是动态生成，因为我们没有持久化存储）
+        // 为了保持一致性，这里直接调用生成方法
+        // 在实际应用中，可以考虑缓存或数据库存储
+        return generateUserRecommendationPlaylists(userId);
+    }
 }
