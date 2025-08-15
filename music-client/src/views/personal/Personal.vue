@@ -903,4 +903,88 @@ export default defineComponent({
     font-size: 16px;
     padding: 40px 0;
   }
+
+  /* 创建歌单按钮区域样式 */
+  .action-bar {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 40px;
+    padding: 30px 0;
+  }
+
+  .create-playlist-btn {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(248, 250, 252, 0.9));
+    border: 2px solid rgba(59, 130, 246, 0.2);
+    color: #3b82f6;
+    padding: 16px 32px;
+    font-size: 16px;
+    font-weight: 600;
+    border-radius: 20px;
+    box-shadow: 0 8px 25px rgba(59, 130, 246, 0.15);
+    backdrop-filter: blur(10px);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+    letter-spacing: 0.5px;
+    
+    &::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+      transition: left 0.6s ease;
+    }
+    
+    &:hover {
+      background: linear-gradient(135deg, #3b82f6, #2563eb);
+      color: white;
+      border-color: #3b82f6;
+      transform: translateY(-3px);
+      box-shadow: 0 12px 35px rgba(59, 130, 246, 0.25);
+      
+      &::before {
+        left: 100%;
+      }
+    }
+    
+    &:active {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(59, 130, 246, 0.2);
+    }
+    
+    .el-icon {
+      margin-right: 8px;
+      font-size: 18px;
+      transition: transform 0.3s ease;
+    }
+    
+    &:hover .el-icon {
+      transform: rotate(90deg);
+    }
+  }
+
+  /* 响应式设计 */
+  @media (max-width: 768px) {
+    .action-bar {
+      padding: 20px 0;
+      margin-bottom: 30px;
+    }
+    
+    .create-playlist-btn {
+      padding: 14px 28px;
+      font-size: 15px;
+      border-radius: 16px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .create-playlist-btn {
+      padding: 12px 24px;
+      font-size: 14px;
+      border-radius: 14px;
+    }
+  }
 </style>

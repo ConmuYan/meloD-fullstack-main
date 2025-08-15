@@ -7,6 +7,10 @@ import com.example.yin.mapper.CollectMapper;
 import com.example.yin.model.domain.Collect;
 import com.example.yin.model.request.CollectRequest;
 import com.example.yin.service.CollectService;
+import com.example.yin.service.SongListService;
+import com.example.yin.service.ListSongService;
+import com.example.yin.model.domain.SongList;
+import com.example.yin.model.request.ListSongRequest;
 import io.lettuce.core.StrAlgoArgs;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,12 +20,46 @@ import org.springframework.stereotype.Service;
 public class CollectServiceImpl extends ServiceImpl<CollectMapper, Collect> implements CollectService {
     @Autowired
     private CollectMapper collectMapper;
+    
+    @Autowired
+    private SongListService songListService;
+    
+    @Autowired
+    private ListSongService listSongService;
 
     @Override
     public R addCollection(CollectRequest addCollectRequest) {
         //作者用type来判断收藏的是歌还是歌单
         Collect collect = new Collect();
         BeanUtils.copyProperties(addCollectRequest, collect);
+        
+        // 如果是收藏歌曲（type=0），需要同时添加到"我喜欢"歌单
+        if (addCollectRequest.getType() != null && addCollectRequest.getType() == 0) {
+            // 确保用户有"我喜欢"歌单
+            R myFavoriteResult = songListService.getMyFavoriteSongList(addCollectRequest.getUserId());
+            SongList myFavorite = null;
+            
+            if (!myFavoriteResult.getSuccess()) {
+                // 如果"我喜欢"歌单不存在，创建一个
+                R createResult = songListService.createMyFavoriteSongList(addCollectRequest.getUserId());
+                if (createResult.getSuccess()) {
+                    myFavorite = (SongList) createResult.getData();
+                } else {
+                    return R.error("创建我喜欢歌单失败");
+                }
+            } else {
+                myFavorite = (SongList) myFavoriteResult.getData();
+            }
+            
+            // 将歌曲添加到"我喜欢"歌单
+            if (myFavorite != null) {
+                ListSongRequest listSongRequest = new ListSongRequest();
+                listSongRequest.setSongId(addCollectRequest.getSongId());
+                listSongRequest.setSongListId(myFavorite.getId());
+                listSongService.addListSong(listSongRequest);
+            }
+        }
+        
         if (collectMapper.insert(collect) > 0) {
             return R.success("收藏成功", true);
         } else {
@@ -46,6 +84,17 @@ public class CollectServiceImpl extends ServiceImpl<CollectMapper, Collect> impl
         QueryWrapper<Collect> queryWrapper = new QueryWrapper();
         queryWrapper.eq("user_id",userId);
         queryWrapper.eq("song_id",songId);
+        
+        // 同时从"我喜欢"歌单中移除歌曲
+        R myFavoriteResult = songListService.getMyFavoriteSongList(userId);
+        if (myFavoriteResult.getSuccess()) {
+            SongList myFavorite = (SongList) myFavoriteResult.getData();
+            if (myFavorite != null) {
+                // 从"我喜欢"歌单中删除歌曲
+                listSongService.deleteListSongFromList(songId, myFavorite.getId());
+            }
+        }
+        
         if (collectMapper.delete(queryWrapper) > 0) {
             return R.success("取消收藏", false);
         } else {

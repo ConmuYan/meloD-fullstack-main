@@ -34,11 +34,10 @@
       </div> -->
     </div>
     <div class="hero-content">
-      <h1 class="hero-title">
-        <span class="title-line ">发现你的</span>
-        <span class="title-line  ">音乐世界</span>
+      <h1 class="hero-title" style="opacity: 0.46;">
+        <span class="title-line ">Hello meloD!</span>
       </h1>
-      <p class="hero-subtitle">探索无限音乐可能，让每一首歌都成为你的专属回忆</p>
+      <p class="hero-subtitle" style="opacity: 0.6;">探索无限音乐可能，让每一首歌都成为你的专属回忆</p>
       <div class="hero-actions">
         <button class="cta-button primary" @click="exploreMusic">
           <span>开始探索</span>
@@ -127,7 +126,7 @@ const swiperList = ref([]);
 const { changeIndex, routerManager } = mixin();
 
 // 视频背景相关
-const videoUrl = ref('http://localhost:8888/img/video/hero-background.mp4'); // 视频URL
+const videoUrl = ref('/img/video/hero-background.mp4'); // 视频URL
 const videoLoaded = ref(false);
 const videoError = ref(false);
 
@@ -304,8 +303,8 @@ try {
 // Hero Section样式
 .hero-section {
   position: relative;
-  height: 75vh;
-  min-height: 550px;
+  height: 85vh;
+  min-height: 400px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -447,9 +446,9 @@ try {
     position: relative;
     
     .hero-title {
-      font-size: 4rem;
-      font-weight: 800;
-      margin-bottom: 1.5rem;
+      font-size: 5rem;
+      font-weight: 3000;
+      margin-bottom: 0.5rem;
       line-height: 1.2;
       
       .title-line {
@@ -489,11 +488,13 @@ try {
     }
     
     .hero-subtitle {
-      font-size: 1.25rem;
-      margin-bottom: 2.5rem;
+      font-size: 1rem;
+      margin-bottom: 0.8rem;
       opacity: 0.9;
       line-height: 1.6;
     }
+    
+
     
     .hero-actions {
       .cta-button {

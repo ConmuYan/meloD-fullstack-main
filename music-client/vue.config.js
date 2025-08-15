@@ -11,7 +11,22 @@ module.exports = defineConfig({
     // 禁用主机检查，避免开发环境警告
     allowedHosts: 'all',
     // 启用 HTML5 History API 支持，解决刷新页面空白问题
-    historyApiFallback: true
+    historyApiFallback: true,
+    // 配置代理解决跨域问题
+    proxy: {
+      '/img': {
+        target: 'http://localhost:8888',
+        changeOrigin: true,
+        secure: false,
+        logLevel: 'debug'
+      },
+      '/song': {
+        target: 'http://localhost:8888',
+        changeOrigin: true,
+        secure: false,
+        logLevel: 'debug'
+      }
+    }
   },
 
   // 生产环境配置

@@ -374,8 +374,7 @@ export default defineComponent({
     const searching = ref(false); // 搜索状态
     const selectedSongsToRemove = ref([]); // 选中要移除的歌曲
 
-    const songDetails = computed(() => store.getters.songDetails); // 单个歌单信息
-    const songDetails = ref({}); // 单个歌单信息
+    const songDetails = ref<any>({}); // 单个歌单信息
     const loading = ref(false);
     const nowUserId = computed(() => store.getters.userId);
     
@@ -952,20 +951,123 @@ export default defineComponent({
 /* 操作菜单样式 */
 .operation-menu {
   position: absolute;
-  top: 100px;
-  right: 200px;
+  top: 20px;
+  right: 20px;
   z-index: 100;
 
   .el-dropdown-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(248, 250, 252, 0.9));
+    border: 2px solid rgba(59, 130, 246, 0.2);
+    border-radius: 50%;
     cursor: pointer;
-    color: $color-grey;
-    transition: all 0.3s;
-    outline: none; /* 移除轮廓 */
-    border: none;  /* 移除边框 */
+    color: #64748b;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    outline: none;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(10px);
+    position: relative;
+    overflow: hidden;
+
+    &::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(147, 197, 253, 0.1));
+      border-radius: 50%;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
 
     &:hover {
-      color: #409EFF;
-      transform: scale(1.1);
+      color: #3b82f6;
+      border-color: #3b82f6;
+      transform: translateY(-2px) scale(1.05);
+      box-shadow: 0 8px 25px rgba(59, 130, 246, 0.2);
+      
+      &::before {
+        opacity: 1;
+      }
+    }
+
+    &:active {
+      transform: translateY(0) scale(1.02);
+      box-shadow: 0 4px 15px rgba(59, 130, 246, 0.15);
+    }
+
+    .el-icon {
+      font-size: 20px;
+      transition: transform 0.3s ease;
+    }
+
+    &:hover .el-icon {
+      transform: rotate(90deg);
+    }
+  }
+}
+
+/* 下拉菜单样式优化 */
+:deep(.el-dropdown-menu) {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  border-radius: 12px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+  padding: 8px;
+  min-width: 160px;
+
+  .el-dropdown-menu__item {
+    padding: 12px 16px;
+    border-radius: 8px;
+    margin: 2px 0;
+    font-size: 14px;
+    font-weight: 500;
+    color: #374151;
+    transition: all 0.2s ease;
+    position: relative;
+    overflow: hidden;
+
+    &::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.1), transparent);
+      transition: left 0.4s ease;
+    }
+
+    &:hover {
+      background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(147, 197, 253, 0.1));
+      color: #3b82f6;
+      transform: translateX(4px);
+
+      &::before {
+        left: 100%;
+      }
+    }
+
+    &:focus {
+      background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(147, 197, 253, 0.15));
+      color: #3b82f6;
+    }
+
+    /* 删除歌单项特殊样式 */
+    &[style*="color: #F56C6C"] {
+      color: #ef4444 !important;
+
+      &:hover {
+        background: linear-gradient(135deg, rgba(239, 68, 68, 0.1), rgba(252, 165, 165, 0.1));
+        color: #dc2626 !important;
+      }
     }
   }
 }
@@ -975,6 +1077,24 @@ export default defineComponent({
   .operation-menu {
     top: 10px;
     right: 10px;
+
+    .el-dropdown-link {
+      width: 40px;
+      height: 40px;
+
+      .el-icon {
+        font-size: 18px;
+      }
+    }
+  }
+
+  :deep(.el-dropdown-menu) {
+    min-width: 140px;
+
+    .el-dropdown-menu__item {
+      padding: 10px 14px;
+      font-size: 13px;
+    }
   }
 }
 
