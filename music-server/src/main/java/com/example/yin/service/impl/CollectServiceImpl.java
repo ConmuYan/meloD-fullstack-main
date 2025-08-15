@@ -7,6 +7,7 @@ import com.example.yin.mapper.CollectMapper;
 import com.example.yin.model.domain.Collect;
 import com.example.yin.model.request.CollectRequest;
 import com.example.yin.service.CollectService;
+import io.lettuce.core.StrAlgoArgs;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -71,13 +72,13 @@ public class CollectServiceImpl extends ServiceImpl<CollectMapper, Collect> impl
             return R.success("未收藏", false);
         }
     }
-    
+
     @Override
-    public R deleteSongListCollect(Integer userId, Integer songListId) {
+    public R deleteSongListCollect(Integer userId, Integer songListId, Byte type) {
         QueryWrapper<Collect> queryWrapper = new QueryWrapper();
         queryWrapper.eq("user_id", userId);
         queryWrapper.eq("song_list_id", songListId);
-        queryWrapper.eq("type", 1);
+        queryWrapper.eq("type", type);
         if (collectMapper.delete(queryWrapper) > 0) {
             return R.success("取消收藏", false);
         } else {
@@ -86,10 +87,10 @@ public class CollectServiceImpl extends ServiceImpl<CollectMapper, Collect> impl
     }
     
     @Override
-    public R songListCollectionOfUser(Integer userId) {
+    public R songListCollectionOfUser(Integer userId, Byte type) {
         QueryWrapper<Collect> queryWrapper = new QueryWrapper();
         queryWrapper.eq("user_id", userId);
-        queryWrapper.eq("type", 1); // type=1 表示歌单
+        queryWrapper.eq("type", type); // type=1 表示歌单,type=2表示自己创建的歌单
         queryWrapper.orderByDesc("create_time"); // 按收藏时间倒序排列
         return R.success("用户收藏的歌单", collectMapper.selectList(queryWrapper));
     }

@@ -87,7 +87,8 @@ public class SongListServiceImpl extends ServiceImpl<SongListMapper, SongList> i
         String pic = "/img/songListPic/123.jpg";
         songList.setPic(pic);
         if (songListMapper.insert(songList) > 0) {
-            return R.success("添加成功");
+            int newId = songList.getId();
+            return R.success("添加成功", newId);
         } else {
             return R.error("添加失败");
         }

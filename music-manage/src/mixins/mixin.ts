@@ -8,7 +8,7 @@ interface routerOptions {
 }
 
 export default function () {
-  const { proxy } = getCurrentInstance()!;
+  const { proxy } = getCurrentInstance() as unknown as {proxy : any};
   const uploadTypes = ref(["jpg", "jpeg", "png", "gif"]);
 
   function changeSex(value) {

@@ -37,6 +37,12 @@ const HttpManager = {
   getSongListOfLikeTitle: (keywords) => get(`songList/likeTitle/detail?title=${keywords}`),
   // 返回歌单里指定歌单ID的歌曲
   getListSongOfSongId: (songListId) => get(`listSong/detail?songListId=${songListId}`),
+  // 添加歌单
+  setSongList: ({title, introduction, style}) => post(`songList/add`, {title, introduction, style}),
+  // 更新歌单信息
+  updateSongListMsg: ({id, title, introduction, style}) => post(`songList/update`, {id, title, introduction, style}),
+  // 删除歌单
+  deleteSongList: (id) => get(`songList/delete?id=${id}`),
 
   // =======================> 歌手 API  完成
   // 返回所有歌手
@@ -49,7 +55,7 @@ const HttpManager = {
   // =======================> 收藏 API 完成
   // 返回的指定用户ID的收藏列表
   getCollectionOfUser: (userId) => get(`collection/detail?userId=${userId}`),
-  // 添加收藏的歌曲 type: 0 代表歌曲， 1 代表歌单
+  // 添加收藏的歌曲 type: 0 代表歌曲， 1 代表歌单, 2 代表自创歌单
   setCollection: ({userId,type,songId,songListId}) => post(`collection/add`,{userId,type,songId,songListId}),
 
   deleteCollection: (userId, songId) => deletes(`collection/delete?userId=${userId}&&songId=${songId}`),
@@ -57,10 +63,22 @@ const HttpManager = {
   isCollection: ({userId, songId}) => post(`collection/status`, {userId, songId}),
 
   // 歌单收藏相关API
-  getSongListCollectionOfUser: (userId) => get(`collection/songList/detail?userId=${userId}`),
+  getSongListCollectionOfUser: (userId, params) => {
+    let url = `collection/songList/detail?userId=${userId}`;
+    if (params) {
+      const queryParams = new URLSearchParams();
+      for (const [key, value] of Object.entries(params)) {
+        if (value !== undefined && value !== null) {
+          queryParams.append(key, value.toString());
+        }
+      }
+      url += '&' + queryParams.toString();
+    }
+    return get(url);
+  },
   getSongCollectionOfUser: (userId) => get(`collection/song/detail?userId=${userId}`),
   isSongListCollection: ({userId, songListId}) => post(`collection/songList/status`, {userId, songListId}),
-  deleteSongListCollection: (userId, songListId) => deletes(`collection/songList/delete?userId=${userId}&songListId=${songListId}`),
+  deleteSongListCollection: (userId, songListId, type) => deletes(`collection/songList/delete?userId=${userId}&songListId=${songListId}&type=${type}`),
   
   // "我喜欢"歌单相关API
   createMyFavoriteSongList: (userId) => post(`songList/myFavorite/create?userId=${userId}`),
@@ -75,6 +93,13 @@ const HttpManager = {
   addSongToMyFavorite: ({songListId, songId}) => post(`listSong/add`, {songListId, songId}),
   clearMyFavoriteSongList: (songListId) => get(`listSong/clear?songListId=${songListId}`),
 
+  // =======================> 歌单歌曲 API 完成
+  // 给歌单添加歌曲
+  setListSong: ({songId,songListId}) => post(`listSong/add`, {songId,songListId}),
+  // 删除歌单里的歌曲
+  deleteListSong: (songId) => get(`listSong/delete?songId=${songId}`),
+  //删除指定歌单里的歌曲
+  deleteListSongFromList: (songId, songListId) => get(`/listSong/deleteFromList?songId=${songId}&songListId=${songListId}`),
   // =======================> 评分 API 完成
   // 歌单评分
   // 提交歌单评分

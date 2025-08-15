@@ -144,7 +144,7 @@ export default defineComponent({
     YinDelDialog,
   },
   setup() {
-    const { proxy } = getCurrentInstance();
+    const { proxy } = getCurrentInstance() as unknown as {proxy : any};
     const { changeSex, routerManager, beforeImgUpload } = mixin();
 
     const tableData = ref([]); // 记录歌曲，用于显示

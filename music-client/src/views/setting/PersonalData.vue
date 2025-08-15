@@ -113,7 +113,7 @@ import { getBirth } from "@/utils";
 
 export default defineComponent({
   setup() {
-    const { proxy } = getCurrentInstance();
+    const { proxy } = getCurrentInstance() as unknown as {proxy : any};
     const store = useStore();
     const router = useRouter();
     const { goBack } = mixin();

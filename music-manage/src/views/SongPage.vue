@@ -142,7 +142,7 @@ export default defineComponent({
     YinDelDialog,
   },
   setup() {
-    const { proxy } = getCurrentInstance();
+    const { proxy } = getCurrentInstance() as unknown as {proxy : any};
     const { routerManager, beforeImgUpload, beforeSongUpload } = mixin();
     const store = useStore();
 

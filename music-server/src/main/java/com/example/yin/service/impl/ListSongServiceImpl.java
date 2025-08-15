@@ -47,6 +47,18 @@ public class ListSongServiceImpl extends ServiceImpl<ListSongMapper, ListSong> i
     }
 
     @Override
+    public R deleteListSongFromList(Integer id, Integer songListId) {
+        QueryWrapper<ListSong> queryWrapper = new QueryWrapper<>();
+        queryWrapper
+                .eq("song_list_id", songListId) // 指定歌单
+                .eq("song_id", id);          // 指定歌曲
+        if (listSongMapper.delete(queryWrapper) > 0) {
+            return R.success("删除成功");
+        }
+        return R.error("删除失败");
+    }
+
+    @Override
     public R addListSong(ListSongRequest addListSongRequest) {
         ListSong listSong = new ListSong();
         BeanUtils.copyProperties(addListSongRequest, listSong);
