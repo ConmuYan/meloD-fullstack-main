@@ -32,6 +32,9 @@ public class ConsumerController {
 
     @Autowired
     StringRedisTemplate stringRedisTemplate;
+    
+    @Autowired
+    private com.example.yin.service.impl.UserSessionManager userSessionManager;
     /**
      * TODO 前台页面调用 注册
      * 用户注册
@@ -48,6 +51,29 @@ public class ConsumerController {
     @PostMapping("/user/login/status")
     public R loginStatus(@RequestBody ConsumerRequest loginRequest, HttpSession session) {
         return consumerService.loginStatus(loginRequest, session);
+    }
+    
+    /**
+     * 会话心跳接口 - 用于更新用户会话活跃时间
+     */
+    @PostMapping("/user/heartbeat")
+    public R heartbeat(HttpSession session) {
+        String username = (String) session.getAttribute("username");
+        if (username != null) {
+            userSessionManager.updateSessionActivity(username, session.getId());
+            return R.success("心跳更新成功");
+        } else {
+            return R.error("用户未登录");
+        }
+    }
+    
+    /**
+     * TODO 前台页面调用  登出
+     * 用户登出
+     */
+    @PostMapping("/user/logout")
+    public R logout(HttpSession session) {
+        return consumerService.logout(session);
     }
     /**
      * email登录
@@ -142,6 +168,24 @@ public class ConsumerController {
     @GetMapping("/user/delete")
     public R deleteUser(@RequestParam int id) {
         return consumerService.deleteUser(id);
+    }
+
+    /**
+     * TODO 管理界面的调用
+     * 检查用户是否在线
+     */
+    @GetMapping("/user/online/status")
+    public R checkUserOnlineStatus(@RequestParam int id) {
+        return consumerService.checkUserOnlineStatus(id);
+    }
+
+    /**
+     * TODO 管理界面的调用
+     * 暴力删除用户（删除所有关联数据并踢出在线用户）
+     */
+    @PostMapping("/user/force/delete")
+    public R forceDeleteUser(@RequestParam int id) {
+        return consumerService.forceDeleteUser(id);
     }
 
     /**

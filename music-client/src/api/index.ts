@@ -21,6 +21,8 @@ const HttpManager = {
   updateUserPassword: ({id,username,oldPassword,password}) => post(`user/updatePassword`, {id,username,oldPassword,password}),
   // 返回指定ID的用户
   getUserOfId: (id) => get(`user/detail?id=${id}`),
+  // 获取所有用户
+  getAllUser: () => get(`user`),
   // 更新用户头像
   uploadUrl: (userId) => `${getBaseURL()}/user/avatar/update?id=${userId}`,
 
@@ -74,12 +76,23 @@ const HttpManager = {
   clearMyFavoriteSongList: (songListId) => get(`listSong/clear?songListId=${songListId}`),
 
   // =======================> 评分 API 完成
-  // 提交评分
+  // 歌单评分
+  // 提交歌单评分
   setRank: ({songListId,consumerId,score}) => post(`rankList/add`, {songListId,consumerId,score}),
   // 获取指定歌单的评分
   getRankOfSongListId: (songListId) => get(`rankList?songListId=${songListId}`),
   // 获取指定用户的歌单评分
   getUserRank: (consumerId, songListId) => get(`/rankList/user?consumerId=${consumerId}&songListId=${songListId}`),
+  
+  // 歌曲评分
+  // 提交歌曲评分
+  setSongRank: ({songId,consumerId,score}) => post(`songRank/add`, {songId,consumerId,score}),
+  // 获取指定歌曲的评分
+  getRankOfSongId: (songId) => get(`songRank?songId=${songId}`),
+  // 获取指定用户的歌曲评分
+  getUserSongRank: (consumerId, songId) => get(`/songRank/user?consumerId=${consumerId}&songId=${songId}`),
+  // 获取指定歌曲的详细评分统计信息
+  getSongRankStatistics: (songId) => get(`songRank/statistics?songId=${songId}`),
 
   // =======================> 评论 API 完成
   // 添加评论
@@ -120,7 +133,11 @@ const HttpManager = {
   insertUserSupport:({commentId,userId}) => post(`userSupport/insert`, {commentId,userId}),
 
   //获取所有的海报
-  getBannerList: () => get("banner/getAllBanner")
+  getBannerList: () => get("banner/getAllBanner"),
+  // 获取所有启用的轮播图，按排序顺序
+  getActiveBannerList: () => get("banner/getActiveBanner"),
+  // 根据类别获取轮播图
+  getBannerByCategory: (category) => get(`banner/getBannerByCategory?category=${category}`)
 };
 
 

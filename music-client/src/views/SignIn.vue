@@ -27,7 +27,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, reactive, getCurrentInstance } from "vue";
+import { defineComponent, reactive, getCurrentInstance, onMounted } from "vue";
 import mixin from "@/mixins/mixin";
 import YinLoginLogo from "@/components/layouts/YinLoginLogo.vue";
 import EnhancedInput from "@/components/common/EnhancedInput.vue";
@@ -44,6 +44,11 @@ export default defineComponent({
   setup() {
     const { proxy } = getCurrentInstance();
     const { routerManager, changeIndex } = mixin();
+
+    // 设置导航栏状态为登录
+    onMounted(() => {
+      changeIndex(NavName.SignIn);
+    });
 
     // 登录用户名密码
     const registerForm = reactive({
@@ -73,6 +78,10 @@ export default defineComponent({
           proxy.$store.commit("setUsername", result.data[0].username);
           proxy.$store.commit("setUserPic", result.data[0].avator);
           proxy.$store.commit("setToken", true);
+          
+          // 立即同步store状态到localStorage，确保路由守卫能正确识别登录状态
+          localStorage.setItem("dataStore", JSON.stringify(proxy.$store.state));
+          
           changeIndex(NavName.Home);
           routerManager(RouterName.Home, { path: RouterName.Home });
         }

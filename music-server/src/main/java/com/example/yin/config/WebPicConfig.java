@@ -27,8 +27,10 @@ public class WebPicConfig implements WebMvcConfigurer {
                 .addResourceLocations(Constants.SONG_PATH);
         registry.addResourceHandler("/img/songListPic/**")
                 .addResourceLocations(Constants.SONGLIST_PIC_PATH);
-        registry.addResourceHandler("/img/swiper/**")
+        registry.addResourceHandler("/img/banners/**")
                 .addResourceLocations(Constants.BANNER_PIC_PATH);
+        registry.addResourceHandler("/img/video/**")
+                .addResourceLocations(Constants.VIDEO_PATH);
     }
 
 }

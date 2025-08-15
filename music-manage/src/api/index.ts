@@ -14,6 +14,12 @@ const HttpManager = {
     getUserOfId: (id) => get(`user/detail?id=${id}`),
     // 删除用户
     deleteUser: (id) => get(`user/delete?id=${id}`),
+    // 检查用户在线状态
+    checkUserOnlineStatus: (id) => get(`user/online/status?id=${id}`),
+    // 强制删除用户
+    forceDeleteUser: (id) => post(`user/force/delete?id=${id}`, {}),
+    // 用户会话心跳
+    userHeartbeat: () => post(`user/heartbeat`, {}),
     // =======================> 收藏列表 API 完成
     // 返回的指定用户ID收藏列表
     getCollectionOfUser: (userId) => get(`collection/detail?userId=${userId}`),

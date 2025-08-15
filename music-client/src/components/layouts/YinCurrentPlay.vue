@@ -17,7 +17,26 @@
             lyric: item.lyric,
             currentSongList: currentPlayList,
           })">
-          {{ getSongTitle(item.name) }}
+          <div class="song-item">
+            <div class="song-cover">
+              <el-image 
+                :src="attachImageUrl(item.pic)" 
+                class="cover-img" 
+                fit="cover"
+                :lazy="true"
+              >
+                <template #error>
+                  <div class="image-slot">
+                    <i class="el-icon-picture-outline"></i>
+                  </div>
+                </template>
+              </el-image>
+            </div>
+            <div class="song-info">
+              <div class="song-name">{{ getSongTitle(item.name) }}</div>
+              <div class="singer-name">{{ getSingerName(item.name) }}</div>
+            </div>
+          </div>
         </li>
       </ul>
     </div>
@@ -28,12 +47,13 @@
 import { defineComponent, getCurrentInstance, computed, onMounted } from "vue";
 import { useStore } from "vuex";
 import mixin from "@/mixins/mixin";
+import { HttpManager } from "@/api";
 
 export default defineComponent({
   setup() {
     const { proxy } = getCurrentInstance();
     const store = useStore();
-    const { getSongTitle, playMusic } = mixin();
+    const { getSongTitle, getSingerName, playMusic } = mixin();
 
     const songId = computed(() => store.getters.songId); // 音乐 ID
     const currentPlayList = computed(() => store.getters.currentPlayList); // 当前播放
@@ -60,7 +80,9 @@ export default defineComponent({
       currentPlayList,
       showAside,
       getSongTitle,
+      getSingerName,
       playMusic,
+      attachImageUrl: HttpManager.attachImageUrl,
     };
   },
 });

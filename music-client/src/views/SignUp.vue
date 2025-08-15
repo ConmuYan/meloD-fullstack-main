@@ -47,7 +47,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, reactive, getCurrentInstance } from "vue";
+import { defineComponent, reactive, getCurrentInstance, onMounted } from "vue";
 import mixin from "@/mixins/mixin";
 import YinLoginLogo from "@/components/layouts/YinLoginLogo.vue";
 import EnhancedInput from "@/components/common/EnhancedInput.vue";
@@ -66,6 +66,11 @@ export default defineComponent({
     const { proxy } = getCurrentInstance();
     const { routerManager, changeIndex } = mixin();
 
+    // 设置导航栏状态为注册
+    onMounted(() => {
+      changeIndex(NavName.SignUp);
+    });
+
     const registerForm = reactive({
       username: "",
       password: "",
@@ -83,12 +88,20 @@ export default defineComponent({
     }
 
     async function handleSignUp() {
-      let canRun = true;
-      (proxy.$refs["signUpForm"] as any).validate((valid) => {
-        if (!valid) return (canRun = false);
+      // 使用Promise包装表单验证，确保验证完成后再继续
+      const isValid = await new Promise((resolve) => {
+        (proxy.$refs["signUpForm"] as any).validate((valid) => {
+          resolve(valid);
+        });
       });
-      if (!canRun) return;
-
+      
+      if (!isValid) {
+        (proxy as any).$message({
+          message: "请检查表单信息是否填写正确",
+          type: "error",
+        });
+        return;
+      }
 
       try {
         const username = registerForm.username;

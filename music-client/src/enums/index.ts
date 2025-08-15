@@ -5,7 +5,7 @@ import { NavName, HEADERNAVLIST, SIGNLIST, MENULIST } from "./nav";
 import { singerStyle } from "./singer";
 import { SONGSTYLE } from "./songList";
 import { RouterName } from "./router-name";
-import { validatePassword, SignInRules, SignUpRules, EmailSignInRules } from "./validate";
+import { validatePassword, validateUpdatePassword, SignInRules, SignUpRules, EmailSignInRules, PersonalDataRules } from "./validate";
 
 export {
   AREA,
@@ -19,7 +19,9 @@ export {
   singerStyle,
   SONGSTYLE,
   validatePassword,
+  validateUpdatePassword,
   SignInRules,
   EmailSignInRules,
   SignUpRules,
+  PersonalDataRules,
 };

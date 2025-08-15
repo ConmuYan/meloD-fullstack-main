@@ -66,7 +66,14 @@
   </div>
 
   <!-- 删除提示框 -->
-  <yin-del-dialog :delVisible="delVisible" @confirm="confirm" @cancelRow="delVisible = $event"></yin-del-dialog>
+  <yin-user-del-dialog
+    :delVisible="delVisible"
+    :username="currentUserName"
+    :isOnline="currentUserOnlineStatus"
+    @confirm="confirm"
+    @forceDelete="forceConfirm"
+    @cancelRow="delVisible = $event"
+  ></yin-user-del-dialog>
 </template>
 
 <script lang="ts">
@@ -74,12 +81,12 @@ import { defineComponent, getCurrentInstance, watch, ref, reactive, computed } f
 import mixin from "@/mixins/mixin";
 import { HttpManager } from "@/api";
 import { RouterName } from "@/enums";
-import YinDelDialog from "@/components/dialog/YinDelDialog.vue";
+import YinUserDelDialog from "@/components/dialog/YinUserDelDialog.vue";
 import { getBirth } from "@/utils";
 
 export default defineComponent({
   components: {
-    YinDelDialog,
+    YinUserDelDialog,
   },
   setup() {
     const { proxy } = getCurrentInstance();
@@ -146,22 +153,55 @@ export default defineComponent({
     /**
      * 删除
      */
-    const idx = ref(-1); // 记录当前要删除的行
+    const deleteId = ref(-1); // 记录当前要删除的行
+    const currentUserName = ref(''); // 当前要删除的用户名
+    const currentUserOnlineStatus = ref(false); // 当前用户在线状态
     const multipleSelection = ref([]); // 记录当前要删除的列表
     const delVisible = ref(false); // 显示删除框
 
     async function confirm() {
-      const result = (await HttpManager.deleteUser(idx.value)) as ResponseBody;
+      const result = (await HttpManager.deleteUser(deleteId.value)) as ResponseBody;
       (proxy as any).$message({
         message: result.message,
         type: result.type,
       });
-      if (result) getData();
+      if (result.success) getData();
       delVisible.value = false;
     }
-    function deleteRow(id) {
-      idx.value = id;
-      delVisible.value = true;
+    
+    async function forceConfirm() {
+      const result = (await HttpManager.forceDeleteUser(deleteId.value)) as ResponseBody;
+      (proxy as any).$message({
+        message: result.message,
+        type: result.type,
+      });
+      if (result.success) getData();
+      delVisible.value = false;
+    }
+    
+    async function deleteRow(id) {
+      deleteId.value = id;
+      
+      // 获取用户信息
+      const userResult = (await HttpManager.getUserOfId(id)) as ResponseBody;
+      if (userResult.success && userResult.data && userResult.data[0]) {
+        currentUserName.value = userResult.data[0].username;
+        
+        // 检查用户在线状态
+        const onlineResult = (await HttpManager.checkUserOnlineStatus(id)) as ResponseBody;
+        if (onlineResult.success) {
+          currentUserOnlineStatus.value = onlineResult.data;
+        } else {
+          currentUserOnlineStatus.value = false;
+        }
+        
+        delVisible.value = true;
+      } else {
+        (proxy as any).$message({
+          message: '获取用户信息失败',
+          type: 'error',
+        });
+      }
     }
     function handleSelectionChange(val) {
       multipleSelection.value = val;
@@ -187,6 +227,8 @@ export default defineComponent({
       data,
       tableData,
       delVisible,
+      currentUserName,
+      currentUserOnlineStatus,
       pageSize,
       currentPage,
       deleteAll,
@@ -197,6 +239,7 @@ export default defineComponent({
       deleteRow,
       handleAvatarSuccess,
       confirm,
+      forceConfirm,
       goCollectPage,
       attachImageUrl: HttpManager.attachImageUrl,
     };

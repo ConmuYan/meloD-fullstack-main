@@ -9,10 +9,14 @@ import com.example.yin.mapper.ConsumerMapper;
 import com.example.yin.model.domain.Consumer;
 import com.example.yin.model.request.ConsumerRequest;
 import com.example.yin.service.ConsumerService;
+import com.example.yin.service.CommentService;
+import com.example.yin.service.CollectService;
+import com.example.yin.service.UserSupportService;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DuplicateKeyException;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
 import org.springframework.web.multipart.MultipartFile;
@@ -21,6 +25,7 @@ import javax.servlet.http.HttpSession;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.Set;
 
 import static com.example.yin.constant.Constants.SALT;
 
@@ -30,6 +35,21 @@ public class ConsumerServiceImpl extends ServiceImpl<ConsumerMapper, Consumer>
 
     @Autowired
     private ConsumerMapper consumerMapper;
+    
+    @Autowired
+    private CommentService commentService;
+    
+    @Autowired
+    private CollectService collectService;
+    
+    @Autowired
+    private UserSupportService userSupportService;
+    
+    @Autowired
+    private StringRedisTemplate stringRedisTemplate;
+    
+    @Autowired
+    private UserSessionManager userSessionManager;
 
 
     /**
@@ -183,6 +203,10 @@ public class ConsumerServiceImpl extends ServiceImpl<ConsumerMapper, Consumer>
 
         if (this.verityPasswd(username, password)) {
             session.setAttribute("username", username);
+            // 使用新的会话管理器添加用户会话
+            String userAgent = "web"; // 可以从请求头获取更详细的设备信息
+            userSessionManager.addUserSession(username, session.getId(), userAgent);
+            
             Consumer consumer = new Consumer();
             consumer.setUsername(username);
             return R.success("登录成功", consumerMapper.selectList(new QueryWrapper<>(consumer)));
@@ -198,11 +222,29 @@ public class ConsumerServiceImpl extends ServiceImpl<ConsumerMapper, Consumer>
         Consumer consumer1 = findByEmail(email);
         if (this.verityPasswd(consumer1.getUsername(), password)) {
             session.setAttribute("username", consumer1.getUsername());
+            // 使用新的会话管理器添加用户会话
+            String userAgent = "web"; // 可以从请求头获取更详细的设备信息
+            userSessionManager.addUserSession(consumer1.getUsername(), session.getId(), userAgent);
+            
             Consumer consumer = new Consumer();
             consumer.setUsername(consumer1.getUsername());
             return R.success("登录成功", consumerMapper.selectList(new QueryWrapper<>(consumer)));
         } else {
             return R.error("用户名或密码错误");
+        }
+    }
+    
+    @Override
+    public R logout(HttpSession session) {
+        String username = (String) session.getAttribute("username");
+        if (username != null) {
+            // 使用新的会话管理器移除用户会话
+            userSessionManager.removeUserSession(username, session.getId());
+            // 清除session
+            session.invalidate();
+            return R.success("登出成功");
+        } else {
+            return R.error("用户未登录");
         }
     }
 
@@ -212,6 +254,67 @@ public class ConsumerServiceImpl extends ServiceImpl<ConsumerMapper, Consumer>
         queryWrapper.eq("email",email);
         Consumer consumer = consumerMapper.selectOne(queryWrapper);
         return consumer;
+    }
+    
+    @Override
+    public R checkUserOnlineStatus(Integer id) {
+        try {
+            // 查询用户信息
+            Consumer consumer = consumerMapper.selectById(id);
+            if (consumer == null) {
+                return R.error("用户不存在");
+            }
+            
+            // 使用新的会话管理器检查用户在线状态
+            boolean isOnline = userSessionManager.isUserOnline(consumer.getUsername());
+            int activeSessionCount = userSessionManager.getActiveSessionCount(consumer.getUsername());
+            
+            if (isOnline) {
+                return R.success("用户在线 (活跃会话数: " + activeSessionCount + ")", true);
+            } else {
+                return R.success("用户离线", false);
+            }
+        } catch (Exception e) {
+            return R.error("检查用户在线状态失败: " + e.getMessage());
+        }
+    }
+    
+    @Override
+    public R forceDeleteUser(Integer id) {
+        try {
+            // 查询用户信息
+            Consumer consumer = consumerMapper.selectById(id);
+            if (consumer == null) {
+                return R.error("用户不存在");
+            }
+            
+            // 1. 删除用户的评论
+            QueryWrapper<com.example.yin.model.domain.Comment> commentQuery = new QueryWrapper<>();
+            commentQuery.eq("user_id", id);
+            commentService.remove(commentQuery);
+            
+            // 2. 删除用户的收藏
+            QueryWrapper<com.example.yin.model.domain.Collect> collectQuery = new QueryWrapper<>();
+            collectQuery.eq("user_id", id);
+            collectService.remove(collectQuery);
+            
+            // 3. 删除用户的点赞记录
+            QueryWrapper<com.example.yin.model.domain.UserSupport> supportQuery = new QueryWrapper<>();
+            supportQuery.eq("user_id", id);
+            userSupportService.remove(supportQuery);
+            
+            // 4. 强制清除用户的所有会话（踢出所有设备上的用户）
+            userSessionManager.clearAllUserSessions(consumer.getUsername());
+            
+            // 5. 删除用户本身
+            if (consumerMapper.deleteById(id) > 0) {
+                return R.success("用户及其关联数据已强制删除，在线用户已被踢出");
+            } else {
+                return R.error("删除用户失败");
+            }
+        } catch (Exception e) {
+            return R.error("强制删除用户失败: " + e.getMessage());
+        }
     }
 
 }

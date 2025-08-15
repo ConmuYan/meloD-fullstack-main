@@ -78,7 +78,7 @@ import { defineComponent, getCurrentInstance, computed, reactive } from "vue";
 import { useStore } from "vuex";
 import mixin from "@/mixins/mixin";
 import { HttpManager } from "@/api";
-import { validatePassword } from "@/enums";
+import { validatePassword, validateUpdatePassword } from "@/enums";
 
 export default defineComponent({
   setup() {
@@ -96,17 +96,17 @@ export default defineComponent({
 
     const validateCheck = (rule: any, value: any, callback: any) => {
       if (value === "") {
-        callback(new Error("密码不能为空"));
+        callback(new Error("确认密码不能为空"));
       } else if (value !== form.newPassword) {
-        callback(new Error("请输入正确密码"));
+        callback(new Error("两次输入的密码不一致"));
       } else {
         callback();
       }
     };
     const rules = reactive({
-      oldPassword: [{ validator: validatePassword, trigger: "blur", min: 3 }],
-      newPassword: [{ validator: validatePassword, trigger: "blur", min: 3 }],
-      confirmPassword: [{ validator: validateCheck, trigger: "blur", min: 3 }],
+      oldPassword: [{ validator: validatePassword, trigger: "blur" }],
+      newPassword: [{ validator: validateUpdatePassword, trigger: "blur" }],
+      confirmPassword: [{ validator: validateCheck, trigger: "blur" }],
     });
 
     async function clearData() {
@@ -116,12 +116,20 @@ export default defineComponent({
     }
 
     async function confirm() {
-      let canRun = true;
-      (proxy.$refs["passwordForm"] as any).validate((valid) => {
-        if (!valid) return (canRun = false);
+      // 使用Promise包装表单验证，确保验证完成后再继续
+      const isValid = await new Promise((resolve) => {
+        (proxy.$refs["passwordForm"] as any).validate((valid) => {
+          resolve(valid);
+        });
       });
-      if (!canRun) return;
-
+      
+      if (!isValid) {
+        (proxy as any).$message({
+          message: "请检查表单信息是否填写正确",
+          type: "error",
+        });
+        return;
+      }
 
       const id = userId.value;
       const username = userName.value;

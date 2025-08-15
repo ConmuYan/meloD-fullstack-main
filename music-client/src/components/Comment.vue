@@ -79,6 +79,12 @@ onMounted(() => {
 // 获取所有评论
 async function getComment(id) {
   try {
+    // 确保id不为空且为有效值
+    if (!id || id === 'undefined' || id === 'null') {
+      console.error('无效的ID参数:', id);
+      return;
+    }
+    
     const result = (await HttpManager.getAllComment(type.value, id)) as ResponseBody;
     commentList.value = result.data;
     for (let index = 0; index < commentList.value.length; index++) {
