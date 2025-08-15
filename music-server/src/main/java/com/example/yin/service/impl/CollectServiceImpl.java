@@ -7,6 +7,7 @@ import com.example.yin.mapper.CollectMapper;
 import com.example.yin.model.domain.Collect;
 import com.example.yin.model.request.CollectRequest;
 import com.example.yin.service.CollectService;
+import io.lettuce.core.StrAlgoArgs;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -73,11 +74,11 @@ public class CollectServiceImpl extends ServiceImpl<CollectMapper, Collect> impl
     }
 
     @Override
-    public R deleteSongListCollect(Integer userId, Integer songListId) {
+    public R deleteSongListCollect(Integer userId, Integer songListId, Byte type) {
         QueryWrapper<Collect> queryWrapper = new QueryWrapper();
         queryWrapper.eq("user_id", userId);
         queryWrapper.eq("song_list_id", songListId);
-        queryWrapper.eq("type", 1);
+        queryWrapper.eq("type", type);
         if (collectMapper.delete(queryWrapper) > 0) {
             return R.success("取消收藏", false);
         } else {

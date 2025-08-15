@@ -18,7 +18,7 @@ public interface CollectService extends IService<Collect> {
     // 新增歌单收藏相关方法
     R existSongListId(CollectRequest isCollectRequest);
 
-    R deleteSongListCollect(Integer userId, Integer songListId);
+    R deleteSongListCollect(Integer userId, Integer songListId, Byte type);
     
     R songListCollectionOfUser(Integer userId, Byte type);
     

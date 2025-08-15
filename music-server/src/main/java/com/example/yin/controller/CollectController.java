@@ -50,8 +50,8 @@ public class CollectController {
     
     // 取消收藏歌单
     @DeleteMapping("/collection/songList/delete")
-    public R deleteSongListCollection(@RequestParam Integer userId, @RequestParam Integer songListId) {
-        return collectService.deleteSongListCollect(userId, songListId);
+    public R deleteSongListCollection(@RequestParam Integer userId, @RequestParam Integer songListId, @RequestParam Byte type) {
+        return collectService.deleteSongListCollect(userId, songListId, type);
     }
     
     // 返回指定用户收藏的歌单列表

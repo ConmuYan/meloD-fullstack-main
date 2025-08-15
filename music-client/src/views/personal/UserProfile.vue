@@ -91,6 +91,14 @@
       </div>
     </div>
     <div class="personal-body">
+      <!-- 创建歌单展示区域 -->
+      <div class="collected-section" v-if="createdPlaylists.length > 0">
+        <h3 class="section-title">TA的创建歌单</h3>
+        <div class="collected-content">
+          <play-list :playList="createdPlaylists" path="song-sheet-detail"></play-list>
+        </div>
+      </div>
+
       <!-- 收藏歌单展示区域 -->
       <div class="collected-section" v-if="collectedPlaylists.length > 0">
         <h3 class="section-title">TA的收藏歌单</h3>
@@ -143,6 +151,7 @@ export default defineComponent({
 
     const collectSongList = ref([]); // 收藏的歌曲
     const collectedPlaylists = ref([]); // 收藏的歌单
+    const createdPlaylists = ref([]); // 创建的歌单
     const userPic = ref("");
 
     // 获取用户信息
@@ -210,6 +219,29 @@ export default defineComponent({
       }
     }
 
+    async function getCreatedPlaylists(id) {
+      if (!id) return;
+      try {
+        // 使用与收藏歌单相同的逻辑，但添加type=2 参数
+        const result = (await HttpManager.getSongListCollectionOfUser(id, {type : 2})) as ResponseBody;
+        if (result.success && result.data) {
+          createdPlaylists.value = [];
+          // 获取歌单详情
+          for (let item of result.data) {
+            if (item.songListId) {
+              const songListResult = (await HttpManager.getSongListOfId(item.songListId)) as ResponseBody;
+              if (songListResult.success && songListResult.data) {
+                const songList = songListResult.data[0];
+                createdPlaylists.value.push(songList);
+              }
+            }
+          }
+        }
+      } catch (error) {
+        console.error('获取创建歌单失败:', error);
+      }
+    }
+
     // 初始化加载数据
     async function loadData() {
       const id = userId.value;
@@ -218,7 +250,8 @@ export default defineComponent({
       await Promise.all([
         getUserInfo(id),
         getCollection(id),
-        getCollectedPlaylists(id)
+        getCollectedPlaylists(id),
+        getCreatedPlaylists(id)
       ]);
     }
 
@@ -230,6 +263,7 @@ export default defineComponent({
       personalInfo,
       collectSongList,
       collectedPlaylists,
+      createdPlaylists,
       userPic,
       attachImageUrl: HttpManager.attachImageUrl,
     };
