@@ -124,21 +124,39 @@ const HttpManager = {
   // 下载音乐
   downloadMusic: (url) => get(url, { responseType: "blob" }),
 
-  //======================> 点赞api的优化 避免有些是重复的点赞！新增数据表了得
-
-  testAlreadySupport:({commentId,userId}) => post(`userSupport/test`, {commentId,userId}),
-
-  deleteUserSupport:({commentId,userId}) => post(`userSupport/delete`, {commentId,userId}),
-
-  insertUserSupport:({commentId,userId}) => post(`userSupport/insert`, {commentId,userId}),
-
   //获取所有的海报
   getBannerList: () => get("banner/getAllBanner"),
+  
+  // =======================> 每日推荐 API
+  // 获取用户每日推荐
+  getUserDailyRecommendations: (userId) => {
+    if (userId && userId > 0) {
+      return get(`recommendation/daily/${userId}`);
+    } else {
+      return get('recommendation/daily');
+    }
+  },
+  // 获取游客推荐
+  getGuestRecommendations: () => get('recommendation/guest'),
+  // 手动刷新用户推荐
+  generateUserRecommendations: (userId) => post(`recommendation/generate/${userId}`, {}),
+  // 获取推荐主题歌单（用于轮播图）
+  getRecommendationThemes: () => get('recommendation/themes'),
+  // 生成用户推荐歌单
+  generateUserRecommendationPlaylists: (userId) => post(`recommendation/playlists/generate/${userId}`, {}),
+  // 获取用户推荐歌单
+  getUserRecommendationPlaylists: (userId) => get(`recommendation/playlists/${userId}`),
+  // 获取游客推荐歌单
+  getGuestRecommendationPlaylists: () => get('recommendation/playlists/guest'),
+  // 管理员批量生成推荐
+  generateAllUserRecommendations: () => post('recommendation/generate/all', {}),
+
   // 获取所有启用的轮播图，按排序顺序
   getActiveBannerList: () => get("banner/getActiveBanner"),
   // 根据类别获取轮播图
   getBannerByCategory: (category) => get(`banner/getBannerByCategory?category=${category}`)
 };
+
 
 
 

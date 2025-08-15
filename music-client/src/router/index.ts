@@ -108,6 +108,14 @@ const routes: Array<RouteRecordRaw> = [
           }
         ]
       },
+      {
+        path: '/recommendation-playlist',
+        name: 'RecommendationPlaylist',
+        component: () => import('@/views/RecommendationPlaylist.vue'),
+        meta: {
+          title: '推荐歌单'
+        }
+      },
     ],
   },
 ];
