@@ -91,3 +91,4 @@
 2025-08-15 11:42:27 WARN [org.springframework.web.servlet.PageNotFound]: No mapping for GET /songRank
 2025-08-15 11:42:51 WARN [org.springframework.web.servlet.PageNotFound]: No mapping for GET /songRank
 2025-08-15 11:48:37 WARN [org.springframework.web.servlet.PageNotFound]: No mapping for GET /songRank
+2025-08-15 11:57:56 WARN [org.springframework.web.servlet.PageNotFound]: No mapping for GET /recommendation/themes
