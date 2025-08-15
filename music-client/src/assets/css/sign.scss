@@ -36,11 +36,11 @@
 // 桌面端布局 - 居中设计
 @media screen and (min-width: $sm) {
   .sign {
-    width: 380px;
-    max-width: 90vw;
+    width: 320px;
+    max-width: 85vw;
     position: absolute;
     left: 50%;
-    top: 50%;
+    top: 54%;
     transform: translate(-50%, -50%);
     
     &.enhanced {
@@ -52,8 +52,8 @@
 // 移动端布局 - 响应式优化
 @media screen and (max-width: $sm) {
   .sign {
-    width: 85vw;
-    max-width: 350px;
+    width: 80vw;
+    max-width: 300px;
     position: absolute;
     left: 50%;
     top: 50%;
@@ -67,7 +67,7 @@
 
 // 主要登录表单样式 - 简洁现代设计
 .sign {
-  padding: 35px;
+  padding: 28px;
   border-radius: 16px;
   background: #ffffff;
   transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
@@ -91,8 +91,8 @@
   // 现代化标题设计
   .sign-head {
     text-align: center;
-    margin-bottom: 28px;
-    font-size: 24px;
+    margin-bottom: 18px;
+    font-size: 22px;
     font-weight: 600;
     color: #1a1a1a;
     letter-spacing: -0.3px;
@@ -105,7 +105,7 @@
       width: 40px;
       height: 2px;
       background: linear-gradient(135deg, #6b8198, #36a3f7);
-      margin: 12px auto 0;
+      margin: 8px auto 0;
       border-radius: 1px;
       opacity: 0.8;
     }
@@ -113,7 +113,7 @@
 
   // 优雅的表单项设计
   :deep(.el-form-item) {
-    margin-bottom: 20px;
+    margin-bottom: 10px;
     animation: fadeInStagger 0.6s ease-out both;
     
     &:nth-child(1) { animation-delay: 0.2s; }
@@ -127,7 +127,7 @@
       font-weight: 500;
       color: #4a5568;
       font-size: 13px;
-      margin-bottom: 6px;
+      margin-bottom: 4px;
     }
     
     // 输入框容器优化
@@ -151,7 +151,7 @@
 
   // 现代化按钮区域
   .sign-btn {
-    margin-top: 28px;
+    margin-top: 18px;
     animation: fadeInStagger 0.6s ease-out 0.8s both;
     
     // 修复 Element Plus 相邻按钮默认左外边距导致的左端不对齐问题
@@ -183,6 +183,7 @@
           border: none;
           color: white;
           box-shadow: 0 4px 15px rgba(64, 158, 255, 0.2);
+          height: 40px;
           
           &:hover {
             transform: translateY(-2px);
@@ -201,11 +202,11 @@
         display: flex;
         justify-content: center;
         gap: 12px;
-        margin-top: 8px;
+        margin-top: 6px;
         
         button {
           min-width: 120px;
-          height: 38px;
+          height: 34px;
           background: transparent;
           border: 1.5px solid #e2e8f0;
           color: #64748b;

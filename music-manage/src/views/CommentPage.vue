@@ -38,7 +38,7 @@ export default defineComponent({
     YinDelDialog,
   },
   setup() {
-    const { proxy } = getCurrentInstance();
+    const { proxy } = getCurrentInstance() as unknown as {proxy : any};
     const store = useStore();
 
     const tableData = ref([]); // 记录歌曲，用于显示
@@ -66,10 +66,10 @@ export default defineComponent({
       tableData.value = [];
       tempDate.value = [];
       let promise = null;
-      if (proxy.$route.query.type == "0") {
-        promise = HttpManager.getCommentOfSongId(proxy.$route.query.id);
-      } else if (proxy.$route.query.type == "1") {
-        promise = HttpManager.getCommentOfSongListId(proxy.$route.query.id);
+      if ((proxy as any).$route.query.type == "0") {
+        promise = HttpManager.getCommentOfSongId((proxy as any).$route.query.id);
+      } else if ((proxy as any).$route.query.type == "1") {
+        promise = HttpManager.getCommentOfSongListId((proxy as any).$route.query.id);
       }
 
       promise.then((res) => {

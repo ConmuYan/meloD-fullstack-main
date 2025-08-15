@@ -8,7 +8,7 @@
     <div class="header-right">
       <div class="header-user-con">
         <div class="user-avator">
-          <img :src="attachImageUrl(userPic)" />
+          <img src="@/assets/images/npu_logo.png" />
         </div>
         <el-dropdown class="user-name" trigger="click" @command="handleCommand">
           <span class="el-dropdown-link">

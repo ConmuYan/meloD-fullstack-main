@@ -24,46 +24,148 @@
   bottom: 0;
   padding-bottom: $footer-height;
   z-index: 99;
-  background-color: $color-white;
-  box-shadow: 1px 1px 10px rgba(0, 0, 0, 0.4);
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+  box-shadow: -2px 0 20px rgba(0, 0, 0, 0.1), 0 0 40px rgba(0, 0, 0, 0.05);
   overflow: hidden;
-}
-
-.title,
-.control,
-.menus li {
-  padding-left: 20px;
-  box-sizing: border-box;
+  border-left: 1px solid rgba(0, 0, 0, 0.06);
 }
 
 .title {
-  margin: 10px 0;
+  margin: 0;
+  padding: 20px 20px 12px 20px;
+  font-size: 16px;
+  font-weight: 600;
+  color: #2c3e50;
+  background: linear-gradient(90deg, #409eff, #67c23a);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  box-sizing: border-box;
 }
 
 .control {
-  margin: 3px 0;
-  color: $color-grey;
+  margin: 0;
+  padding: 12px 20px 16px 20px;
+  color: #909399;
+  font-size: 13px;
+  background-color: rgba(64, 158, 255, 0.03);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+  box-sizing: border-box;
 }
 
 .menus {
   width: 100%;
-  height: calc(100% - 19px);
+  height: calc(100% - 120px);
   cursor: pointer;
   z-index: 100;
-  overflow: scroll;
-  white-space: nowrap;
+  overflow-y: auto;
+  overflow-x: hidden;
+  
+  /* 自定义滚动条样式 */
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  &::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.02);
+    border-radius: 3px;
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background: rgba(64, 158, 255, 0.3);
+    border-radius: 3px;
+    transition: background 0.2s ease;
+    
+    &:hover {
+      background: rgba(64, 158, 255, 0.5);
+    }
+  }
+  
   li {
     display: block;
     width: 100%;
-    height: 40px;
-    line-height: 40px;
+    padding: 8px 0;
+    transition: background-color 0.2s ease;
+    
     &:hover {
-      background-color: $color-light-grey;
+      background-color: rgba(64, 158, 255, 0.05);
+      transform: translateX(2px);
+    }
+    
+    .song-item {
+      display: flex;
+      align-items: center;
+      padding: 0 20px;
+      gap: 12px;
+      
+      .song-cover {
+        flex-shrink: 0;
+        width: 40px;
+        height: 40px;
+        border-radius: 6px;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        
+        .cover-img {
+          width: 100%;
+          height: 100%;
+          border-radius: 6px;
+        }
+        
+        .image-slot {
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          width: 100%;
+          height: 100%;
+          background-color: #f5f7fa;
+          color: #909399;
+          font-size: 14px;
+        }
+      }
+      
+      .song-info {
+        flex: 1;
+        min-width: 0;
+        
+        .song-name {
+          font-size: 14px;
+          font-weight: 500;
+          color: #303133;
+          line-height: 1.4;
+          margin-bottom: 2px;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+        
+        .singer-name {
+          font-size: 12px;
+          color: #909399;
+          line-height: 1.2;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+      }
     }
   }
 }
 
 .is-play {
-  color: $color-black;
-  font-weight: bold;
+  background-color: rgba(64, 158, 255, 0.1);
+  
+  .song-item {
+    .song-info {
+      .song-name {
+        color: #409eff;
+        font-weight: 600;
+      }
+      
+      .singer-name {
+        color: #409eff;
+      }
+    }
+  }
 }

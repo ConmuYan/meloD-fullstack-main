@@ -85,3 +85,6 @@ minio.exe
 !music-client/src/assets/**
 !music-manage/src/assets/
 !music-manage/src/assets/**
+!music-server/img/banners/**
+!music-server/img/singerPic/**
+!music-server/img/video/**

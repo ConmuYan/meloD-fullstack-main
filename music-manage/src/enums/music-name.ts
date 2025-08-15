@@ -1,1 +1,1 @@
-export const MUSICNAME = 'Yin-music 后台管理'
+export const MUSICNAME = 'meloD 流媒体平台管理端'

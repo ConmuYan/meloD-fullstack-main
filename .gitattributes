@@ -4,8 +4,8 @@
 * text=auto eol=lf
 
 # 前端项目（Vue + TypeScript）
-/music-client/**  text eol=lf
-/music-manage/**  text eol=lf
+/music-client/** text=auto eol=lf
+/music-manage/** text=auto eol=lf
 
 # 后端项目
 /music-server/**   text eol=lf
@@ -22,6 +22,8 @@ pom.xml               text eol=lf
 *.cmd                 text eol=crlf
 *.bat                 text eol=crlf
 *.ps1                 text eol=crlf
+
+
 
 # 文本文件统一使用 LF
 *.md      text eol=lf
@@ -41,6 +43,8 @@ pom.xml               text eol=lf
 # 二进制文件（禁止 Git 做任何换行符转换）
 *.mp3     -text
 *.jpg    -text
+*.jpeg    -text
 *.png    -text
 *.zip    -text
 *.pdf    -text
+*.mp4    -text

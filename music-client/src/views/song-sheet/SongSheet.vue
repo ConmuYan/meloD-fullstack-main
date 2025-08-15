@@ -12,7 +12,8 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, onMounted, onBeforeUnmount, nextTick } from "vue";
+import { defineComponent, ref, onMounted, onBeforeUnmount, nextTick, watch } from "vue";
+import { useRoute, useRouter } from "vue-router";
 import YinNav from "@/components/layouts/YinNav.vue";
 import PlayList from "@/components/PlayList.vue";
 import { SONGSTYLE } from "@/enums";
@@ -32,6 +33,8 @@ export default defineComponent({
     PlayList,
   },
   setup() {
+    const route = useRoute();
+    const router = useRouter();
     const activeName = ref("全部歌单");
     const songStyle = ref(SONGSTYLE); // 歌单导航栏类别
     const allPlayList = ref<any[]>([]); // 全量歌单
@@ -59,25 +62,19 @@ export default defineComponent({
       resetAndFill();
     }
 
-    try {
-      getSongList();
-    } catch (error) {
-      console.error(error);
-    }
+    // 移除初始化时的getSongList调用，改为通过路由监听器处理
+    // 这样可以确保从轮播图进入时正确加载对应分类的数据
 
     // 获取歌单
     async function handleChangeView(item) {
-      activeName.value = item.name;
-      allPlayList.value = [];
-      visibleList.value = [];
-      try {
-        if (item.name === "全部歌单") {
-          await getSongList();
-        } else {
-          await getSongListOfStyle(item.name);
-        }
-      } catch (error) {
-        console.error(error);
+      // 通过路由跳转来切换分类，确保URL正确反映当前分类
+      if (item.name === "全部歌单") {
+        await router.push({ path: '/song-sheet' });
+      } else {
+        await router.push({ 
+          path: '/song-sheet', 
+          query: { category: item.name }
+        });
       }
     }
 
@@ -112,6 +109,45 @@ export default defineComponent({
       fillMore();
       nextTick(() => prefillUntilScrollable());
     }
+
+    // 处理路由参数category
+    async function handleRouteCategory() {
+      const categoryParam = route.query.category as string;
+      activeName.value = categoryParam || "全部歌单";
+      allPlayList.value = [];
+      visibleList.value = [];
+      
+      try {
+        if (!categoryParam || categoryParam === "全部歌单") {
+          await getSongList();
+        } else {
+          await getSongListOfStyle(categoryParam);
+        }
+      } catch (error) {
+        console.error('Error loading song list:', error);
+      }
+    }
+
+    // 监听路由变化
+    watch(
+      () => route.fullPath,
+      () => {
+        // 当路由发生变化时，重新处理
+        handleRouteCategory();
+      },
+      { immediate: true }
+    );
+    
+    // 额外监听category参数变化
+    watch(
+      () => route.query.category,
+      (newCategory, oldCategory) => {
+        // 当category参数发生变化时，重新处理
+        if (newCategory !== oldCategory) {
+          handleRouteCategory();
+        }
+      }
+    );
 
     onMounted(() => {
       updateColumns();

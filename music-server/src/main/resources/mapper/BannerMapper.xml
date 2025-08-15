@@ -7,9 +7,72 @@
     <resultMap id="BaseResultMap" type="com.example.yin.model.domain.Banner">
             <id property="id" column="id" jdbcType="INTEGER"/>
             <result property="pic" column="pic" jdbcType="VARCHAR"/>
+            <result property="title" column="title" jdbcType="VARCHAR"/>
+            <result property="description" column="description" jdbcType="VARCHAR"/>
+            <result property="category" column="category" jdbcType="VARCHAR"/>
+            <result property="sortOrder" column="sort_order" jdbcType="INTEGER"/>
+            <result property="isActive" column="is_active" jdbcType="TINYINT"/>
+            <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
+            <result property="updateTime" column="update_time" jdbcType="TIMESTAMP"/>
     </resultMap>
 
     <sql id="Base_Column_List">
-        id,pic
+        id,pic,title,description,category,sort_order,is_active,create_time,update_time
     </sql>
+
+    <!-- 查询所有启用的轮播图，按排序顺序 -->
+    <select id="selectAllActive" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM banner
+        WHERE is_active = 1
+        ORDER BY sort_order ASC
+    </select>
+
+    <!-- 根据类别查询轮播图 -->
+    <select id="selectByCategory" parameterType="java.lang.String" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List"/>
+        FROM banner
+        WHERE category = #{category,jdbcType=VARCHAR} AND is_active = 1
+        ORDER BY sort_order ASC
+    </select>
+
+    <!-- 插入轮播图 -->
+    <insert id="insert" parameterType="com.example.yin.model.domain.Banner" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO banner
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            <if test="pic != null">pic,</if>
+            <if test="title != null">title,</if>
+            <if test="description != null">description,</if>
+            <if test="category != null">category,</if>
+            <if test="sortOrder != null">sort_order,</if>
+            <if test="isActive != null">is_active,</if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            <if test="pic != null">#{pic,jdbcType=VARCHAR},</if>
+            <if test="title != null">#{title,jdbcType=VARCHAR},</if>
+            <if test="description != null">#{description,jdbcType=VARCHAR},</if>
+            <if test="category != null">#{category,jdbcType=VARCHAR},</if>
+            <if test="sortOrder != null">#{sortOrder,jdbcType=INTEGER},</if>
+            <if test="isActive != null">#{isActive,jdbcType=TINYINT},</if>
+        </trim>
+    </insert>
+
+    <!-- 更新轮播图 -->
+    <update id="updateByPrimaryKey" parameterType="com.example.yin.model.domain.Banner">
+        UPDATE banner
+        <set>
+            <if test="pic != null">pic = #{pic,jdbcType=VARCHAR},</if>
+            <if test="title != null">title = #{title,jdbcType=VARCHAR},</if>
+            <if test="description != null">description = #{description,jdbcType=VARCHAR},</if>
+            <if test="category != null">category = #{category,jdbcType=VARCHAR},</if>
+            <if test="sortOrder != null">sort_order = #{sortOrder,jdbcType=INTEGER},</if>
+            <if test="isActive != null">is_active = #{isActive,jdbcType=TINYINT},</if>
+        </set>
+        WHERE id = #{id,jdbcType=INTEGER}
+    </update>
+
+    <!-- 删除轮播图 -->
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
+        DELETE FROM banner WHERE id = #{id,jdbcType=INTEGER}
+    </delete>
 </mapper>

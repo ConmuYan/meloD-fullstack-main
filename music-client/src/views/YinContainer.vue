@@ -108,11 +108,23 @@ export default {
          // 导入HttpManager
          const { HttpManager } = await import('@/api');
          const result = await HttpManager.getUserOfId(userId);
-         return result.success;
+         
+         // 检查返回结果
+         if (result.success && result.data && result.data.length > 0) {
+           return true;
+         } else {
+           console.log('用户信息验证失败:', result.message);
+           return false;
+         }
        } catch (error) {
          // 如果请求失败（如401、400等），说明session无效
          console.log('Session验证失败:', error);
-         return false;
+         // 检查是否是网络错误还是认证错误
+         if (error.response && (error.response.status === 401 || error.response.status === 400)) {
+           return false;
+         }
+         // 网络错误等其他情况，暂时认为session有效，避免误判
+         return true;
        }
      },
     
@@ -139,6 +151,7 @@ export default {
 .el-main {
   padding-left: 0;
   padding-right: 0;
+  padding-top: 0px
 }
 
 

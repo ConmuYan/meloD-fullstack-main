@@ -78,8 +78,8 @@
 
   <!--添加歌曲-->
   <el-dialog title="添加歌曲" v-model="centerDialogVisible">
-    <el-form id="add-song" label-width="120px" :model="registerForm">
-      <el-form-item label="歌曲名">
+    <el-form ref="addSongFormRef" id="add-song" label-width="120px" :model="registerForm" :rules="songRule">
+      <el-form-item label="歌曲名" prop="name">
         <el-input type="text" name="name" v-model="registerForm.name"></el-input>
       </el-form-item>
       <el-form-item label="专辑">
@@ -91,13 +91,13 @@
       <el-form-item label="歌词lrc上传">
         <input type="file" name="lrcfile"/>
       </el-form-item>
-      <el-form-item label="歌曲上传">
-        <input type="file" name="file" />
+      <el-form-item label="歌曲上传" prop="file">
+        <input type="file" name="file" required />
       </el-form-item>
     </el-form>
     <template #footer>
       <span class="dialog-footer">
-        <el-button @click="centerDialogVisible = false">取 消</el-button>
+        <el-button @click="cancelAddSong">取 消</el-button>
         <el-button type="primary" @click="addSong">确 定</el-button>
       </span>
     </template>
@@ -142,7 +142,7 @@ export default defineComponent({
     YinDelDialog,
   },
   setup() {
-    const { proxy } = getCurrentInstance();
+    const { proxy } = getCurrentInstance() as unknown as {proxy : any};
     const { routerManager, beforeImgUpload, beforeSongUpload } = mixin();
     const store = useStore();
 
@@ -178,8 +178,8 @@ export default defineComponent({
       }
     });
 
-    singerId.value = proxy.$route.query.id as string;
-    singerName.value = proxy.$route.query.name as string;
+    singerId.value = (proxy as any).$route.query.id as string;
+    singerName.value = (proxy as any).$route.query.name as string;
     proxy.$store.commit("setIsPlay", false);
     getData();
 
@@ -275,8 +275,45 @@ export default defineComponent({
       introduction: "",
       lyric: "",
     });
+    
+    const songRule = reactive({
+      name: [{ required: true, message: "请输入歌曲名", trigger: "blur" }],
+    });
+    
+    const addSongFormRef = ref();
+    
+    // 取消添加歌曲
+    function cancelAddSong() {
+      centerDialogVisible.value = false;
+      if (addSongFormRef.value) {
+        addSongFormRef.value.resetFields();
+      }
+    }
 
-    function addSong() {
+    async function addSong() {
+      // 表单验证
+      if (!addSongFormRef.value) return;
+      
+      try {
+        await addSongFormRef.value.validate();
+      } catch (error) {
+        (proxy as any).$message({
+          message: "请填写必填项",
+          type: "error",
+        });
+        return;
+      }
+      
+      // 检查文件是否上传
+      const fileInput = document.querySelector('input[name="file"]') as HTMLInputElement;
+      if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
+        (proxy as any).$message({
+          message: "请上传歌曲文件",
+          type: "error",
+        });
+        return;
+      }
+      
       const addSongForm = new FormData(document.getElementById("add-song") as HTMLFormElement);
       addSongForm.append("singerId", singerId.value);
       addSongForm.set("name", singerName.value + "-" + addSongForm.get("name"));
@@ -391,6 +428,9 @@ export default defineComponent({
       data,
       editForm,
       registerForm,
+      songRule,
+      addSongFormRef,
+      cancelAddSong,
       tableData,
       centerDialogVisible,
       editVisible,

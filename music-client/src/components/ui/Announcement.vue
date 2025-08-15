@@ -53,9 +53,10 @@
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue';
+import { defineComponent, getCurrentInstance } from 'vue';
 import { X } from 'lucide-vue-next';
-import { useRouter } from 'vue-router';
+import mixin from '@/mixins/mixin';
+import { NavName, RouterName } from '@/enums';
 
 export default defineComponent({
   components: { X },
@@ -67,10 +68,14 @@ export default defineComponent({
     }
   },
   setup() {
-    const router = useRouter();
+    const { changeIndex, routerManager } = mixin();
+    
     const goToRegister = () => {
-      router.push('/sign-up');
+      // 正确设置导航栏状态为注册
+      changeIndex(NavName.SignUp);
+      routerManager(RouterName.SignUp, { path: RouterName.SignUp });
     };
+    
     return { goToRegister };
   }
 });
@@ -79,11 +84,11 @@ export default defineComponent({
 <style lang="scss" scoped>
 .announcement-container {
   position: fixed;
-  bottom: 80px;
+  bottom: 60px;
   left: 50%;
   transform: translateX(-50%);
   z-index: 1000;
-  max-width: 480px;
+  max-width: 800px;
   width: calc(100vw - 32px);
   pointer-events: none;
 }
@@ -144,7 +149,7 @@ export default defineComponent({
   display: flex;
   align-items: center;
   gap: 16px;
-  padding: 20px 24px;
+  padding: 16px 20px;
 }
 
 .announcement-icon {
@@ -160,8 +165,8 @@ export default defineComponent({
   animation: iconPulse 2s ease-in-out infinite;
   
   svg {
-    width: 20px;
-    height: 20px;
+    width: 30px;
+    height: 30px;
   }
 }
 

@@ -15,6 +15,8 @@ public interface ListSongService extends IService<ListSong> {
 
     R deleteListSong(Integer songId);
 
+    R deleteListSongFromList(Integer id, Integer songListId);
+
     //看看这啥
     List<ListSong> allListSong();
 

@@ -25,7 +25,7 @@
 
   <!--添加歌曲-->
   <el-dialog title="添加歌曲" v-model="centerDialogVisible">
-    <el-form label-width="80px" :model="registerForm">
+    <el-form ref="addListSongFormRef" label-width="80px" :model="registerForm" :rules="listSongRule">
       <el-form-item prop="singerName" label="歌手名字">
         <el-input v-model="registerForm.singerName"></el-input>
       </el-form-item>
@@ -35,7 +35,7 @@
     </el-form>
     <template #footer>
       <span class="dialog-footer">
-        <el-button @click="centerDialogVisible = false">取 消</el-button>
+        <el-button @click="cancelAddListSong">取 消</el-button>
         <el-button type="primary" @click="saveSong()">确 定</el-button>
       </span>
     </template>
@@ -56,7 +56,7 @@ export default defineComponent({
     YinDelDialog,
   },
   setup() {
-    const { proxy } = getCurrentInstance();
+    const { proxy } = getCurrentInstance() as unknown as {proxy : any};
     const store = useStore();
 
     const tableData = ref([]); // 记录歌曲，用于显示
@@ -83,7 +83,7 @@ export default defineComponent({
     async function getData() {
       tableData.value = [];
       tempDate.value = [];
-      const result = (await HttpManager.getListSongOfSongId(proxy.$route.query.id)) as ResponseBody;
+      const result = (await HttpManager.getListSongOfSongId((proxy as any).$route.query.id)) as ResponseBody;
       for (let item of result.data) {
         const result = await HttpManager.getSongOfId(item.songId) as ResponseBody;
         tableData.value.push(result.data[0]);
@@ -99,22 +99,53 @@ export default defineComponent({
       singerName: "",
       songName: "",
     });
+    
+    const listSongRule = reactive({
+      singerName: [{ required: true, message: "请输入歌手名字", trigger: "blur" }],
+      songName: [{ required: true, message: "请输入歌曲名字", trigger: "blur" }],
+    });
+    
+    const addListSongFormRef = ref();
+    
+    // 取消添加歌曲
+    function cancelAddListSong() {
+      centerDialogVisible.value = false;
+      if (addListSongFormRef.value) {
+        addListSongFormRef.value.resetFields();
+      }
+    }
 
     // 获取要添加歌曲的ID
     async function saveSong() {
+      // 表单验证
+      if (!addListSongFormRef.value) return;
+      
+      try {
+        await addListSongFormRef.value.validate();
+      } catch (error) {
+        (proxy as any).$message({
+          message: "请填写必填项",
+          type: "error",
+        });
+        return;
+      }
+      
       const id = `${registerForm.singerName}-${registerForm.songName}`;
       const result = (await HttpManager.getSongOfSingerName(id)) as ResponseBody;
 
       if (result.success) {
         addSong(result.data[0].id);
       }else{
-        alert(result.message);
+        (proxy as any).$message({
+          message: result.message,
+          type: "error",
+        });
         centerDialogVisible.value = false;
       }
     }
     async function addSong(id) {
       let songId = id;
-      let songListId = proxy.$route.query.id as string;
+      let songListId = (proxy as any).$route.query.id as string;
 
       const result = (await HttpManager.setListSong({songId,songListId})) as ResponseBody;
       (proxy as any).$message({
@@ -167,6 +198,9 @@ export default defineComponent({
       delVisible,
       centerDialogVisible,
       registerForm,
+      listSongRule,
+      addListSongFormRef,
+      cancelAddListSong,
       breadcrumbList,
       deleteAll,
       handleSelectionChange,

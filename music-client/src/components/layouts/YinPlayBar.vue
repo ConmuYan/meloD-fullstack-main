@@ -161,9 +161,28 @@ export default defineComponent({
       const userId = userIdVO.value;
       const songId = songIdVO.value;
 
-      const result = isCollection.value
-          ? ((await HttpManager.deleteCollection(userIdVO.value, songIdVO.value)) as ResponseBody)
-          : ((await HttpManager.setCollection({userId, type: 0, songId, songListId: null})) as ResponseBody);
+      let result;
+      if (isCollection.value) {
+        // 取消收藏
+        result = ((await HttpManager.deleteCollection(userIdVO.value, songIdVO.value)) as ResponseBody);
+      } else {
+        // 添加收藏 - 确保"我喜欢"歌单存在
+        try {
+          // 先尝试获取"我喜欢"歌单
+          const myFavoriteResult = await HttpManager.getMyFavoriteSongList(userId);
+          if (!myFavoriteResult.success) {
+            // 如果不存在，创建"我喜欢"歌单
+            await HttpManager.createMyFavoriteSongList(userId);
+          }
+          
+          // 添加到收藏
+          result = ((await HttpManager.setCollection({userId, type: 0, songId, songListId: null})) as ResponseBody);
+        } catch (error) {
+          console.error('创建我喜欢歌单失败:', error);
+          result = ((await HttpManager.setCollection({userId, type: 0, songId, songListId: null})) as ResponseBody);
+        }
+      }
+      
       (proxy as any).$message({
         message: result.message,
         type: result.type,

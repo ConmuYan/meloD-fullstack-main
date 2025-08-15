@@ -6,7 +6,7 @@
     </div>
     
     <div class="form-container">
-      <el-form ref="updateForm" :model="registerForm" :rules="SignUpRules" class="personal-form">
+      <el-form ref="updateForm" :model="registerForm" :rules="PersonalDataRules" class="personal-form">
         <div class="form-grid">
           <!-- 基本信息卡片 -->
           <div class="form-card">
@@ -107,13 +107,13 @@ import { useStore } from "vuex";
 import { useRouter } from "vue-router";
 import { ElMessage } from "element-plus";
 import mixin from "@/mixins/mixin";
-import { AREA, SignUpRules } from "@/enums";
+import { AREA, PersonalDataRules } from "@/enums";
 import { HttpManager } from "@/api";
 import { getBirth } from "@/utils";
 
 export default defineComponent({
   setup() {
-    const { proxy } = getCurrentInstance();
+    const { proxy } = getCurrentInstance() as unknown as {proxy : any};
     const store = useStore();
     const router = useRouter();
     const { goBack } = mixin();
@@ -170,12 +170,20 @@ export default defineComponent({
     }
 
     async function saveMsg() {
-      let canRun = true;
-      (proxy.$refs["updateForm"] as any).validate((valid) => {
-        if (!valid) return (canRun = false);
+      // 使用Promise包装表单验证，确保验证完成后再继续
+      const isValid = await new Promise((resolve) => {
+        (proxy.$refs["updateForm"] as any).validate((valid) => {
+          resolve(valid);
+        });
       });
-      if (!canRun) return;
-
+      
+      if (!isValid) {
+        ElMessage({
+          message: "请检查表单信息是否填写正确",
+          type: "error",
+        });
+        return;
+      }
 
       const id = userId.value;
       const username = registerForm.username;
@@ -223,7 +231,7 @@ export default defineComponent({
     return {
       AREA,
       registerForm,
-      SignUpRules,
+      PersonalDataRules,
       saveMsg,
       goBack,
     };

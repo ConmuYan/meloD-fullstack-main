@@ -41,6 +41,9 @@ public class ListSongController {
         return listSongService.deleteListSong(songId);
     }
 
+    @GetMapping("/listSong/deleteFromList")
+    public R deleteListSongFromList(@RequestParam int songId, @RequestParam int songListId){return listSongService.deleteListSongFromList(songId,songListId);}
+
     // 返回歌单里指定歌单 ID 的歌曲
     @GetMapping("/listSong/detail")
     public R listSongOfSongId(@RequestParam int songListId) {

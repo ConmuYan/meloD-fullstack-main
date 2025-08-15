@@ -58,7 +58,7 @@
 
   <!--添加歌单-->
   <el-dialog title="添加歌单" v-model="centerDialogVisible">
-    <el-form label-width="70px" :model="registerForm">
+    <el-form ref="addSongListFormRef" label-width="70px" :model="registerForm" :rules="songListRule">
       <el-form-item label="歌单名" prop="title">
         <el-input v-model="registerForm.title"></el-input>
       </el-form-item>
@@ -66,12 +66,20 @@
         <el-input v-model="registerForm.introduction"></el-input>
       </el-form-item>
       <el-form-item label="风格" prop="style">
-        <el-input v-model="registerForm.style"></el-input>
+        <el-select v-model="registerForm.style" placeholder="请选择歌单风格" multiple collapse-tags>
+          <el-option label="华语" value="华语"></el-option>
+          <el-option label="粤语" value="粤语"></el-option>
+          <el-option label="欧美" value="欧美"></el-option>
+          <el-option label="日韩热门" value="日韩热门"></el-option>
+          <el-option label="轻音乐" value="轻音乐"></el-option>
+          <el-option label="背景音乐" value="背景音乐"></el-option>
+          <el-option label="器乐演奏" value="器乐演奏"></el-option>
+        </el-select>
       </el-form-item>
     </el-form>
     <template #footer>
       <span class="dialog-footer">
-        <el-button @click="centerDialogVisible = false">取 消</el-button>
+        <el-button @click="cancelAddSongList">取 消</el-button>
         <el-button type="primary" @click="addsongList">确 定</el-button>
       </span>
     </template>
@@ -79,20 +87,28 @@
 
   <!-- 编辑弹出框 -->
   <el-dialog title="编辑" v-model="editVisible">
-    <el-form :model="editForm">
-      <el-form-item label="标题">
+    <el-form ref="editSongListFormRef" :model="editForm" :rules="songListRule">
+      <el-form-item label="标题" prop="title">
         <el-input v-model="editForm.title"></el-input>
       </el-form-item>
-      <el-form-item label="简介">
+      <el-form-item label="简介" prop="introduction">
         <el-input type="textarea" v-model="editForm.introduction"></el-input>
       </el-form-item>
-      <el-form-item label="风格">
-        <el-input v-model="editForm.style"></el-input>
+      <el-form-item label="风格" prop="style">
+        <el-select v-model="editForm.style" placeholder="请选择歌单风格" multiple collapse-tags>
+          <el-option label="华语" value="华语"></el-option>
+          <el-option label="粤语" value="粤语"></el-option>
+          <el-option label="欧美" value="欧美"></el-option>
+          <el-option label="日韩热门" value="日韩热门"></el-option>
+          <el-option label="轻音乐" value="轻音乐"></el-option>
+          <el-option label="背景音乐" value="背景音乐"></el-option>
+          <el-option label="器乐演奏" value="器乐演奏"></el-option>
+        </el-select>
       </el-form-item>
     </el-form>
     <template #footer>
       <span class="dialog-footer">
-        <el-button @click="editVisible = false">取 消</el-button>
+        <el-button @click="cancelEditSongList">取 消</el-button>
         <el-button type="primary" @click="saveEdit">确 定</el-button>
       </span>
     </template>
@@ -231,13 +247,51 @@ export default defineComponent({
     const registerForm = reactive({
       title: "",
       introduction: "",
-      style: "",
+      style: [],
     });
+    
+    const songListRule = reactive({
+      title: [{ required: true, message: "请输入歌单名", trigger: "blur" }],
+      introduction: [{ required: true, message: "请输入歌单介绍", trigger: "blur" }],
+      style: [{ required: true, message: "请选择歌单风格", trigger: "change" }],
+    });
+    
+    const addSongListFormRef = ref();
+    const editSongListFormRef = ref();
+    
+    // 取消添加歌单
+    function cancelAddSongList() {
+      centerDialogVisible.value = false;
+      if (addSongListFormRef.value) {
+        addSongListFormRef.value.resetFields();
+      }
+    }
+    
+    // 取消编辑歌单
+    function cancelEditSongList() {
+      editVisible.value = false;
+      if (editSongListFormRef.value) {
+        editSongListFormRef.value.resetFields();
+      }
+    }
 
     async function addsongList() {
+      // 表单验证
+      if (!addSongListFormRef.value) return;
+      
+      try {
+        await addSongListFormRef.value.validate();
+      } catch (error) {
+        (proxy as any).$message({
+          message: "请填写必填项",
+          type: "error",
+        });
+        return;
+      }
+      
       let title = registerForm.title;
       let introduction = registerForm.introduction;
-      let style = registerForm.style;
+      let style = Array.isArray(registerForm.style) ? registerForm.style.join(',') : registerForm.style;
       const result = (await HttpManager.setSongList({title, introduction, style})) as ResponseBody;
       (proxy as any).$message({
         message: result.message,
@@ -248,7 +302,7 @@ export default defineComponent({
         getData();
         registerForm.title = "";
         registerForm.introduction = "";
-        registerForm.style = "";
+        registerForm.style = [];
       }
       centerDialogVisible.value = false;
     }
@@ -262,7 +316,7 @@ export default defineComponent({
       title: "",
       pic: "",
       introduction: "",
-      style: "",
+      style: [],
     });
 
     function editRow(row) {
@@ -271,16 +325,28 @@ export default defineComponent({
       editForm.title = row.title;
       editForm.pic = row.pic;
       editForm.introduction = row.introduction;
-      editForm.style = row.style;
+      editForm.style = row.style ? (typeof row.style === 'string' ? row.style.split(',') : row.style) : [];
       editVisible.value = true;
     }
 
     async function saveEdit() {
+      // 表单验证
+      if (!editSongListFormRef.value) return;
+      
+      try {
+        await editSongListFormRef.value.validate();
+      } catch (error) {
+        (proxy as any).$message({
+          message: "请填写必填项",
+          type: "error",
+        });
+        return;
+      }
 
       let id = editForm.id;
       let title = editForm.title;
       let introduction = editForm.introduction;
-      let style = editForm.style;
+      let style = Array.isArray(editForm.style) ? editForm.style.join(',') : editForm.style;
 
       const result = (await HttpManager.updateSongListMsg({id, title, introduction, style})) as ResponseBody;
       (proxy as any).$message({
@@ -336,6 +402,11 @@ export default defineComponent({
       pageSize,
       currentPage,
       registerForm,
+      songListRule,
+      addSongListFormRef,
+      editSongListFormRef,
+      cancelAddSongList,
+      cancelEditSongList,
       editForm,
       addsongList,
       deleteAll,

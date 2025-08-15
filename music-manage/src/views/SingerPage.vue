@@ -63,7 +63,7 @@
 
   <!-- 添加 -->
   <el-dialog title="添加歌手" v-model="centerDialogVisible">
-    <el-form label-width="80px" :model="registerForm" :rules="singerRule">
+    <el-form ref="addSingerFormRef" label-width="80px" :model="registerForm" :rules="singerRule">
       <el-form-item label="歌手名" prop="name">
         <el-input v-model="registerForm.name"></el-input>
       </el-form-item>
@@ -88,7 +88,7 @@
     </el-form>
     <template #footer>
       <span class="dialog-footer">
-        <el-button @click="centerDialogVisible = false">取 消</el-button>
+        <el-button @click="cancelAdd">取 消</el-button>
         <el-button type="primary" @click="addsinger">确 定</el-button>
       </span>
     </template>
@@ -96,7 +96,7 @@
 
   <!-- 编辑弹出框 -->
   <el-dialog title="编辑" v-model="editVisible">
-    <el-form label-width="60px" :model="editForm" :rules="singerRule">
+    <el-form ref="editSingerFormRef" label-width="60px" :model="editForm" :rules="singerRule">
       <el-form-item label="歌手" prop="name">
         <el-input v-model="editForm.name"></el-input>
       </el-form-item>
@@ -121,7 +121,7 @@
     </el-form>
     <template #footer>
       <span class="dialog-footer">
-        <el-button @click="editVisible = false">取 消</el-button>
+        <el-button @click="cancelEdit">取 消</el-button>
         <el-button type="primary" @click="saveEdit">确 定</el-button>
       </span>
     </template>
@@ -144,7 +144,7 @@ export default defineComponent({
     YinDelDialog,
   },
   setup() {
-    const { proxy } = getCurrentInstance();
+    const { proxy } = getCurrentInstance() as unknown as {proxy : any};
     const { changeSex, routerManager, beforeImgUpload } = mixin();
 
     const tableData = ref([]); // 记录歌曲，用于显示
@@ -226,7 +226,39 @@ export default defineComponent({
       sex: [{ required: true, trigger: "change" }],
     });
 
+    const addSingerFormRef = ref();
+    const editSingerFormRef = ref();
+
+    // 取消添加，重置表单验证
+    function cancelAdd() {
+      centerDialogVisible.value = false;
+      if (addSingerFormRef.value) {
+        addSingerFormRef.value.resetFields();
+      }
+    }
+
+    // 取消编辑，重置表单验证
+    function cancelEdit() {
+      editVisible.value = false;
+      if (editSingerFormRef.value) {
+        editSingerFormRef.value.clearValidate();
+      }
+    }
+
     async function addsinger() {
+      // 表单验证
+      if (!addSingerFormRef.value) return;
+      
+      try {
+        await addSingerFormRef.value.validate();
+      } catch (error) {
+        (proxy as any).$message({
+          message: "请填写必填项",
+          type: "error",
+        });
+        return;
+      }
+
       let datetime = getBirth(registerForm.birth);
 
       let name = registerForm.name;
@@ -277,6 +309,19 @@ export default defineComponent({
       editForm.introduction = row.introduction;
     }
     async function saveEdit() {
+      // 表单验证
+      if (!editSingerFormRef.value) return;
+      
+      try {
+        await editSingerFormRef.value.validate();
+      } catch (error) {
+        (proxy as any).$message({
+          message: "请填写必填项",
+          type: "error",
+        });
+        return;
+      }
+
       try {
         let datetime = getBirth(new Date(editForm.birth));
 
@@ -351,6 +396,10 @@ export default defineComponent({
       registerForm,
       editForm,
       singerRule,
+      addSingerFormRef,
+      editSingerFormRef,
+      cancelAdd,
+      cancelEdit,
       deleteAll,
       handleSelectionChange,
       handleImgSuccess,

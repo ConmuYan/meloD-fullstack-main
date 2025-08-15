@@ -14,6 +14,14 @@
       </li>
       <li>歌曲：{{ songTitle }}</li>
     </ul>
+    <!-- 歌曲评分 -->
+    <div class="song-rating">
+      <star-rating
+        :song-id="songId"
+        :user-id="userId"
+        @rating-changed="handleRatingChanged"
+      />
+    </div>
   </div>
   <div class="container">
     <div class="lyric-container">
@@ -54,6 +62,7 @@ import { useStore } from "vuex";
 import { useRouter } from "vue-router";
 import Comment from "@/components/Comment.vue";
 import YinIcon from "@/components/layouts/YinIcon.vue";
+import StarRating from "@/components/common/StarRating.vue";
 import { parseLyric } from "@/utils";
 import { HttpManager } from "@/api";
 import { ElMessage } from "element-plus";
@@ -63,6 +72,7 @@ export default defineComponent({
   components: {
     Comment,
     YinIcon,
+    StarRating,
   },
   setup() {
     const store = useStore();
@@ -79,6 +89,7 @@ export default defineComponent({
     const songTitle = computed(() => store.getters.songTitle); // 歌名
     const singerName = computed(() => store.getters.singerName); // 歌手名
     const songPic = computed(() => store.getters.songPic); // 歌曲图片
+    const userId = computed(() => store.getters.userId); // 用户ID
     
     // 处理歌手列表，支持多人合作歌曲的&分隔符
     const singerList = computed(() => {
@@ -86,7 +97,17 @@ export default defineComponent({
       return singerName.value.split('&').map(name => name.trim()).filter(name => name);
     });
     watch(songId, () => {
-      lyricArr.value = parseLyric(currentPlayList.value[currentPlayIndex.value].lyric);
+      // 安全检查，确保播放列表和索引有效
+      if (currentPlayList.value && 
+          currentPlayList.value.length > 0 && 
+          currentPlayIndex.value >= 0 && 
+          currentPlayIndex.value < currentPlayList.value.length &&
+          currentPlayList.value[currentPlayIndex.value]) {
+        const currentSong = currentPlayList.value[currentPlayIndex.value];
+        lyricArr.value = parseLyric(currentSong.lyric || '');
+      } else {
+        lyricArr.value = parseLyric('');
+      }
     });
     // 处理歌词位置及颜色
     watch(curTime, () => {
@@ -107,7 +128,23 @@ export default defineComponent({
       }
     });
 
-    lyricArr.value = lyric.value ? parseLyric(lyric.value) : [];
+    // 初始化歌词数组，优先使用store中的歌词，其次使用当前播放歌曲的歌词
+    const initializeLyrics = () => {
+      if (lyric.value) {
+        lyricArr.value = parseLyric(lyric.value);
+      } else if (currentPlayList.value && 
+                 currentPlayList.value.length > 0 && 
+                 currentPlayIndex.value >= 0 && 
+                 currentPlayIndex.value < currentPlayList.value.length &&
+                 currentPlayList.value[currentPlayIndex.value]) {
+        const currentSong = currentPlayList.value[currentPlayIndex.value];
+        lyricArr.value = parseLyric(currentSong.lyric || '');
+      } else {
+        lyricArr.value = parseLyric('');
+      }
+    };
+    
+    initializeLyrics();
 
     // 歌手跳转功能
     const goToSingerDetail = async (singerName: string) => {
@@ -150,6 +187,12 @@ export default defineComponent({
       }
     };
 
+    // 处理评分变化
+    const handleRatingChanged = (rating: number) => {
+      // StarRating组件已经处理了评分提交和消息显示
+      console.log('歌曲评分已更新:', rating);
+    };
+
     return {
       songPic,
       singerName,
@@ -158,6 +201,7 @@ export default defineComponent({
       lrcTop,
       lyricArr,
       songId,
+      userId,
       hoveredIndex,
       playIcon: Icon.BOFANG,
       attachImageUrl: HttpManager.attachImageUrl,
@@ -165,6 +209,7 @@ export default defineComponent({
       showJumpBtn,
       hideJumpBtn,
       jumpToTime,
+      handleRatingChanged,
     };
   },
 });
@@ -206,6 +251,15 @@ export default defineComponent({
         text-decoration: underline;
       }
     }
+  }
+  
+  .song-rating {
+    width: 300px;
+    margin-top: 20px;
+    padding: 15px;
+    background-color: rgba(255, 255, 255, 0.9);
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   }
 }
 

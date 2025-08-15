@@ -21,6 +21,8 @@ const HttpManager = {
   updateUserPassword: ({id,username,oldPassword,password}) => post(`user/updatePassword`, {id,username,oldPassword,password}),
   // 返回指定ID的用户
   getUserOfId: (id) => get(`user/detail?id=${id}`),
+  // 获取所有用户
+  getAllUser: () => get(`user`),
   // 更新用户头像
   uploadUrl: (userId) => `${getBaseURL()}/user/avatar/update?id=${userId}`,
 
@@ -35,6 +37,12 @@ const HttpManager = {
   getSongListOfLikeTitle: (keywords) => get(`songList/likeTitle/detail?title=${keywords}`),
   // 返回歌单里指定歌单ID的歌曲
   getListSongOfSongId: (songListId) => get(`listSong/detail?songListId=${songListId}`),
+  // 添加歌单
+  setSongList: ({title, introduction, style}) => post(`songList/add`, {title, introduction, style}),
+  // 更新歌单信息
+  updateSongListMsg: ({id, title, introduction, style}) => post(`songList/update`, {id, title, introduction, style}),
+  // 删除歌单
+  deleteSongList: (id) => get(`songList/delete?id=${id}`),
 
   // =======================> 歌手 API  完成
   // 返回所有歌手
@@ -47,7 +55,7 @@ const HttpManager = {
   // =======================> 收藏 API 完成
   // 返回的指定用户ID的收藏列表
   getCollectionOfUser: (userId) => get(`collection/detail?userId=${userId}`),
-  // 添加收藏的歌曲 type: 0 代表歌曲， 1 代表歌单
+  // 添加收藏的歌曲 type: 0 代表歌曲， 1 代表歌单, 2 代表自创歌单
   setCollection: ({userId,type,songId,songListId}) => post(`collection/add`,{userId,type,songId,songListId}),
 
   deleteCollection: (userId, songId) => deletes(`collection/delete?userId=${userId}&&songId=${songId}`),
@@ -55,10 +63,22 @@ const HttpManager = {
   isCollection: ({userId, songId}) => post(`collection/status`, {userId, songId}),
 
   // 歌单收藏相关API
-  getSongListCollectionOfUser: (userId) => get(`collection/songList/detail?userId=${userId}`),
+  getSongListCollectionOfUser: (userId, params) => {
+    let url = `collection/songList/detail?userId=${userId}`;
+    if (params) {
+      const queryParams = new URLSearchParams();
+      for (const [key, value] of Object.entries(params)) {
+        if (value !== undefined && value !== null) {
+          queryParams.append(key, value.toString());
+        }
+      }
+      url += '&' + queryParams.toString();
+    }
+    return get(url);
+  },
   getSongCollectionOfUser: (userId) => get(`collection/song/detail?userId=${userId}`),
   isSongListCollection: ({userId, songListId}) => post(`collection/songList/status`, {userId, songListId}),
-  deleteSongListCollection: (userId, songListId) => deletes(`collection/songList/delete?userId=${userId}&songListId=${songListId}`),
+  deleteSongListCollection: (userId, songListId, type) => deletes(`collection/songList/delete?userId=${userId}&songListId=${songListId}&type=${type}`),
   
   // "我喜欢"歌单相关API
   createMyFavoriteSongList: (userId) => post(`songList/myFavorite/create?userId=${userId}`),
@@ -73,13 +93,31 @@ const HttpManager = {
   addSongToMyFavorite: ({songListId, songId}) => post(`listSong/add`, {songListId, songId}),
   clearMyFavoriteSongList: (songListId) => get(`listSong/clear?songListId=${songListId}`),
 
+  // =======================> 歌单歌曲 API 完成
+  // 给歌单添加歌曲
+  setListSong: ({songId,songListId}) => post(`listSong/add`, {songId,songListId}),
+  // 删除歌单里的歌曲
+  deleteListSong: (songId) => get(`listSong/delete?songId=${songId}`),
+  //删除指定歌单里的歌曲
+  deleteListSongFromList: (songId, songListId) => get(`/listSong/deleteFromList?songId=${songId}&songListId=${songListId}`),
   // =======================> 评分 API 完成
-  // 提交评分
+  // 歌单评分
+  // 提交歌单评分
   setRank: ({songListId,consumerId,score}) => post(`rankList/add`, {songListId,consumerId,score}),
   // 获取指定歌单的评分
   getRankOfSongListId: (songListId) => get(`rankList?songListId=${songListId}`),
   // 获取指定用户的歌单评分
   getUserRank: (consumerId, songListId) => get(`/rankList/user?consumerId=${consumerId}&songListId=${songListId}`),
+  
+  // 歌曲评分
+  // 提交歌曲评分
+  setSongRank: ({songId,consumerId,score}) => post(`songRank/add`, {songId,consumerId,score}),
+  // 获取指定歌曲的评分
+  getRankOfSongId: (songId) => get(`songRank?songId=${songId}`),
+  // 获取指定用户的歌曲评分
+  getUserSongRank: (consumerId, songId) => get(`/songRank/user?consumerId=${consumerId}&songId=${songId}`),
+  // 获取指定歌曲的详细评分统计信息
+  getSongRankStatistics: (songId) => get(`songRank/statistics?songId=${songId}`),
 
   // =======================> 评论 API 完成
   // 添加评论
@@ -111,17 +149,39 @@ const HttpManager = {
   // 下载音乐
   downloadMusic: (url) => get(url, { responseType: "blob" }),
 
-  //======================> 点赞api的优化 避免有些是重复的点赞！新增数据表了得
-
-  testAlreadySupport:({commentId,userId}) => post(`userSupport/test`, {commentId,userId}),
-
-  deleteUserSupport:({commentId,userId}) => post(`userSupport/delete`, {commentId,userId}),
-
-  insertUserSupport:({commentId,userId}) => post(`userSupport/insert`, {commentId,userId}),
-
   //获取所有的海报
-  getBannerList: () => get("banner/getAllBanner")
+  getBannerList: () => get("banner/getAllBanner"),
+  
+  // =======================> 每日推荐 API
+  // 获取用户每日推荐
+  getUserDailyRecommendations: (userId) => {
+    if (userId && userId > 0) {
+      return get(`recommendation/daily/${userId}`);
+    } else {
+      return get('recommendation/daily');
+    }
+  },
+  // 获取游客推荐
+  getGuestRecommendations: () => get('recommendation/guest'),
+  // 手动刷新用户推荐
+  generateUserRecommendations: (userId) => post(`recommendation/generate/${userId}`, {}),
+  // 获取推荐主题歌单（用于轮播图）
+  getRecommendationThemes: () => get('recommendation/themes'),
+  // 生成用户推荐歌单
+  generateUserRecommendationPlaylists: (userId) => post(`recommendation/playlists/generate/${userId}`, {}),
+  // 获取用户推荐歌单
+  getUserRecommendationPlaylists: (userId) => get(`recommendation/playlists/${userId}`),
+  // 获取游客推荐歌单
+  getGuestRecommendationPlaylists: () => get('recommendation/playlists/guest'),
+  // 管理员批量生成推荐
+  generateAllUserRecommendations: () => post('recommendation/generate/all', {}),
+
+  // 获取所有启用的轮播图，按排序顺序
+  getActiveBannerList: () => get("banner/getActiveBanner"),
+  // 根据类别获取轮播图
+  getBannerByCategory: (category) => get(`banner/getBannerByCategory?category=${category}`)
 };
+
 
 
 

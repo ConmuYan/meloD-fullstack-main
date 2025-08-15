@@ -8,7 +8,7 @@ interface routerOptions {
 }
 
 export default function () {
-  const { proxy } = getCurrentInstance();
+  const { proxy } = getCurrentInstance() as unknown as {proxy : any};
   const uploadTypes = ref(["jpg", "jpeg", "png", "gif"]);
 
   function changeSex(value) {
@@ -67,7 +67,7 @@ export default function () {
       case RouterName.Comment:
       case RouterName.Consumer:
       case RouterName.Collect:
-        proxy.$router.push({ path: options.path, query: options.query });
+        (proxy as any).$router.push({ path: options.path, query: options.query });
         break;
       case RouterName.Home:
       case RouterName.SignIn:
@@ -77,13 +77,13 @@ export default function () {
       case RouterName.SongList:
       case RouterName.Error:
       default:
-        proxy.$router.push({ path: options.path });
+        (proxy as any).$router.push({ path: options.path });
         break;
     }
   }
 
   function goBack(step = -1) {
-    proxy.$router.go(step);
+    (proxy as any).$router.go(step);
   }
 
   return { changeSex, routerManager, goBack, beforeImgUpload, beforeSongUpload };

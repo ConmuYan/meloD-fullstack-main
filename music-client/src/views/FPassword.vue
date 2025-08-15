@@ -1,6 +1,7 @@
 <template>
+  <fullscreen-decoration></fullscreen-decoration>
   <yin-login-logo></yin-login-logo>
-  <div class="sign enhanced">
+  <div class="sign enhanced" style="opacity: 1; visibility: visible;">
     <div class="sign-head">
       <span>修改密码</span>
     </div>
@@ -40,11 +41,12 @@
 import { defineComponent, reactive, getCurrentInstance, ref } from "vue";
 import axios from "axios";
 import YinLoginLogo from "@/components/layouts/YinLoginLogo.vue";
+import FullscreenDecoration from "@/components/common/FullscreenDecoration.vue";
 import mixin from "@/mixins/mixin";
 import { RouterName } from "@/enums";
 
 export default defineComponent({
-  components: { YinLoginLogo },
+  components: { YinLoginLogo, FullscreenDecoration },
   setup() {
     const { proxy } = getCurrentInstance();
     const { routerManager } = mixin();

@@ -43,7 +43,7 @@ export default defineComponent({
     YinDelDialog,
   },
   setup() {
-    const { proxy } = getCurrentInstance();
+    const { proxy } = getCurrentInstance() as unknown as {proxy : any};
     const store = useStore();
 
     const tableData = ref([]); // 记录歌曲，用于显示
@@ -70,7 +70,7 @@ export default defineComponent({
     async function getData() {
       tableData.value = [];
       tempDate.value = [];
-      const result = (await HttpManager.getCollectionOfUser(proxy.$route.query.id)) as any;
+      const result = (await HttpManager.getCollectionOfUser((proxy as any).$route.query.id)) as any;
       for (let item of result.data) {
         const result = await HttpManager.getSongOfId(item.songId) as any;
         tableData.value.push(result.data[0]);
@@ -86,7 +86,7 @@ export default defineComponent({
     const delVisible = ref(false); // 显示删除框
 
     async function confirm() {
-      const result = (await HttpManager.deleteCollection(proxy.$route.query.id, idx.value)) as ResponseBody;
+      const result = (await HttpManager.deleteCollection((proxy as any).$route.query.id, idx.value)) as ResponseBody;
       (proxy as any).$message({
         message: result.message,
         type: result.type,

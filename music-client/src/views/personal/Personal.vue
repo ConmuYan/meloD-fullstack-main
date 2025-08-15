@@ -87,23 +87,23 @@
               </div>
             </div>
           </div>
-          
-          <div class="info-card full-width">
-            <div class="card-icon">
-              <svg viewBox="0 0 24 24" fill="currentColor">
-                <path d="M20 2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h4l4 4 4-4h4c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-7 9h-2V9h2v2zm0-4h-2V5h2v2z"/>
-              </svg>
-            </div>
-            <div class="card-content">
-              <div class="card-label">个人签名</div>
-              <div class="card-value signature">{{ personalInfo.introduction || '这个人很懒，什么也没留下' }}</div>
-            </div>
-          </div>
         </div>
       </div>
       <el-button class="edit-info" round :icon="Edit" @click="goPage()">修改个人信息</el-button>
     </div>
     <div class="personal-body">
+      <!-- 创建歌单按钮 -->
+      <div class="action-bar">
+        <el-button type="primary" icon="Plus" @click="showCreateDialog = true" class="create-playlist-btn">创建歌单
+        </el-button>
+      </div>
+
+      <!-- 我创建的歌单区域 -->
+      <div class="created-playlists" v-if="createdPlaylists.length > 0">
+        <h3 class="section-title">我创建的歌单</h3>
+        <play-list :playList="createdPlaylists" path="song-sheet-detail"></play-list>
+      </div>
+
       <!-- 收藏歌单展示区域 -->
       <div class="collected-playlists" v-if="collectedPlaylists.length > 0">
         <h3 class="section-title">我的收藏歌单</h3>
@@ -116,6 +116,36 @@
         <song-list :songList="collectSongList" :show="true" @changeData="changeData"></song-list>
       </div>
     </div>
+    <!-- 创建歌单对话框 -->
+    <el-dialog
+        v-model="showCreateDialog"
+        title="创建新歌单"
+        width="500px"
+        :close-on-click-modal="false"
+    >
+      <el-form :model="newPlaylistForm" label-width="80px">
+        <el-form-item label="歌单名" required>
+          <el-input v-model="newPlaylistForm.title" placeholder="请输入歌单名称" />
+        </el-form-item>
+        <el-form-item label="风格">
+          <el-input v-model="newPlaylistForm.style" placeholder="请输入风格标签" />
+        </el-form-item>
+        <el-form-item label="介绍">
+          <el-input
+              v-model="newPlaylistForm.introduction"
+              type="textarea"
+              :rows="4"
+              placeholder="请输入歌单介绍"
+          />
+        </el-form-item>
+      </el-form>
+
+      <template #footer>
+        <el-button @click="showCreateDialog = false">取消</el-button>
+        <el-button type="primary" @click="createPlaylist">创建</el-button>
+      </template>
+    </el-dialog>
+
     <el-dialog v-model="dialogTableVisible" title="修改头像">
       <upload></upload>
     </el-dialog>
@@ -133,6 +163,7 @@ import Upload from "../setting/Upload.vue";
 import mixin from "@/mixins/mixin";
 import { HttpManager } from "@/api";
 import { RouterName } from "@/enums";
+import { Plus } from "@element-plus/icons-vue";
 
 export default defineComponent({
   components: {
@@ -158,7 +189,16 @@ export default defineComponent({
       phoneNum: "",
       email: "",
     });
-    
+
+    // 新增的状态和数据
+    const showCreateDialog = ref(false);
+    const createdPlaylists = ref([]); // 创建的歌单
+    const newPlaylistForm = reactive({
+      title: "",
+      style: "",
+      introduction: ""
+    });
+
     // 添加加载状态管理，防止重复请求
     const isLoadingUserInfo = ref(false);
     const isLoadingCollection = ref(false);
@@ -243,7 +283,7 @@ export default defineComponent({
       
       isLoadingPlaylists.value = true;
       try {
-        const result = (await HttpManager.getSongListCollectionOfUser(id)) as ResponseBody;
+        const result = (await HttpManager.getSongListCollectionOfUser(id,{type : 1})) as ResponseBody;
         if (result.success && result.data) {
           collectedPlaylists.value = [];
           
@@ -262,6 +302,81 @@ export default defineComponent({
         console.error('获取收藏歌单失败:', error);
       } finally {
         isLoadingPlaylists.value = false;
+      }
+    }
+
+    // 获取创建的歌单（type=2）
+    async function getCreatedPlaylists(id) {
+      if (!id) return;
+      try {
+        // 使用与收藏歌单相同的逻辑，但添加type=2 参数
+        const result = (await HttpManager.getSongListCollectionOfUser(id, {type : 2})) as ResponseBody;
+        if (result.success && result.data) {
+          createdPlaylists.value = [];
+          // 获取歌单详情
+          for (let item of result.data) {
+            if (item.songListId) {
+              const songListResult = (await HttpManager.getSongListOfId(item.songListId)) as ResponseBody;
+              if (songListResult.success && songListResult.data) {
+                const songList = songListResult.data[0];
+                createdPlaylists.value.push(songList);
+              }
+            }
+          }
+        }
+      } catch (error) {
+        console.error('获取创建歌单失败:', error);
+      }
+    }
+
+    // 创建歌单方法
+    async function createPlaylist() {
+      if (!newPlaylistForm.title) {
+        ElMessage.warning("请填写歌单名称");
+        return;
+      }
+
+      try {
+        // 1. 创建歌单
+        const createResult = (await HttpManager.setSongList({
+          title: newPlaylistForm.title,
+          style: newPlaylistForm.style,
+          introduction: newPlaylistForm.introduction
+        })) as ResponseBody;
+
+        if (!createResult.success) {
+          ElMessage.error(createResult.message || "创建失败");
+          return;
+        }
+
+        // 2. 获取新创建的歌单ID
+        const newSongListId = createResult.data;
+
+        // 3. 添加创建记录（type=2）
+        const collectionResult = (await HttpManager.setCollection({
+          userId: userId.value,
+          type: 2,
+          songId: null,
+          songListId: newSongListId
+        })) as ResponseBody;
+        console.log('创建歌单结果:', createResult);
+        if (collectionResult.success) {
+          ElMessage.success("创建成功");
+          // 刷新创建的歌单列表
+          await getCreatedPlaylists(userId.value);
+          // 重置表单并关闭对话框
+          showCreateDialog.value = false;
+          Object.assign(newPlaylistForm, {
+            title: "",
+            style: "",
+            introduction: ""
+          });
+        } else {
+          ElMessage.error("添加记录失败");
+        }
+      } catch (error) {
+        console.error('创建歌单失败:', error);
+        ElMessage.error("创建歌单失败");
       }
     }
 
@@ -295,7 +410,8 @@ export default defineComponent({
         await Promise.all([
           getUserInfo(id),
           getCollection(id),
-          getCollectedPlaylists(id)
+          getCollectedPlaylists(id),
+          getCreatedPlaylists(id)
         ]);
       } catch (error: any) {
         console.error('加载个人页面数据失败:', error);
@@ -341,6 +457,11 @@ export default defineComponent({
       attachImageUrl: HttpManager.attachImageUrl,
       goPage,
       changeData,
+      Plus,
+      showCreateDialog,
+      createdPlaylists,
+      newPlaylistForm,
+      createPlaylist,
     };
   },
 });
@@ -781,5 +902,89 @@ export default defineComponent({
     color: #999;
     font-size: 16px;
     padding: 40px 0;
+  }
+
+  /* 创建歌单按钮区域样式 */
+  .action-bar {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 40px;
+    padding: 30px 0;
+  }
+
+  .create-playlist-btn {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(248, 250, 252, 0.9));
+    border: 2px solid rgba(59, 130, 246, 0.2);
+    color: #3b82f6;
+    padding: 16px 32px;
+    font-size: 16px;
+    font-weight: 600;
+    border-radius: 20px;
+    box-shadow: 0 8px 25px rgba(59, 130, 246, 0.15);
+    backdrop-filter: blur(10px);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+    letter-spacing: 0.5px;
+    
+    &::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+      transition: left 0.6s ease;
+    }
+    
+    &:hover {
+      background: linear-gradient(135deg, #3b82f6, #2563eb);
+      color: white;
+      border-color: #3b82f6;
+      transform: translateY(-3px);
+      box-shadow: 0 12px 35px rgba(59, 130, 246, 0.25);
+      
+      &::before {
+        left: 100%;
+      }
+    }
+    
+    &:active {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(59, 130, 246, 0.2);
+    }
+    
+    .el-icon {
+      margin-right: 8px;
+      font-size: 18px;
+      transition: transform 0.3s ease;
+    }
+    
+    &:hover .el-icon {
+      transform: rotate(90deg);
+    }
+  }
+
+  /* 响应式设计 */
+  @media (max-width: 768px) {
+    .action-bar {
+      padding: 20px 0;
+      margin-bottom: 30px;
+    }
+    
+    .create-playlist-btn {
+      padding: 14px 28px;
+      font-size: 15px;
+      border-radius: 16px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .create-playlist-btn {
+      padding: 12px 24px;
+      font-size: 14px;
+      border-radius: 14px;
+    }
   }
 </style>

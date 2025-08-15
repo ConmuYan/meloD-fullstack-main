@@ -53,28 +53,52 @@ axios.interceptors.response.use(
       
       if (error.response.status) {
         switch (error.response.status) {
-          // 400: 请求错误，可能是session失效
-          case 400:
-            // 如果用户已登录但请求失败，可能是session失效
-            if (store.getters.token && store.getters.userId) {
-              console.warn('请求失败，可能是session失效');
-              // 不自动清除状态，让具体页面处理
+          // 400: 请求错误，可能是session失效或参数错误
+          case 400: {
+            // 检查错误信息，判断是否为session相关问题
+            const errorMessage = error.response.data?.message || '';
+            if (errorMessage.includes('session') || errorMessage.includes('登录') || errorMessage.includes('认证')) {
+              // Session失效，清除登录状态
+              store.commit('setToken', false);
+              store.commit('clearUserInfo');
+              localStorage.removeItem('dataStore');
+              
+              ElMessage({
+                message: 'Session已失效，请重新登录',
+                type: 'warning'
+              });
+              
+              router.replace({
+                path: "/sign-in",
+                query: { redirect: router.currentRoute.value.fullPath }
+              });
+            } else {
+              // 其他400错误，显示具体错误信息
+              ElMessage({
+                message: errorMessage || '请求参数错误',
+                type: 'error'
+              });
             }
             break;
-          // 401: 未登录
-          case 401:
+          }
+          // 401: 未登录或认证失败
+          case 401: {
             // 清除登录状态
             store.commit('setToken', false);
             store.commit('clearUserInfo');
             localStorage.removeItem('dataStore');
             
+            ElMessage({
+              message: '认证失败，请重新登录',
+              type: 'warning'
+            });
+            
             router.replace({
               path: "/sign-in",
-              query: {
-                // redirect: router.currentRoute.fullPath
-              },
+              query: { redirect: router.currentRoute.value.fullPath }
             });
             break;
+          }
           case 403:
             // console.log('管理员权限已修改请重新登录')
             // 跳转登录页面，并将要浏览的页面fullPath传过去，登录成功后跳转需要访问的页面
