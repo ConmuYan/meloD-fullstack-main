@@ -137,6 +137,14 @@ const HttpManager = {
     return get(url);
   },
 
+  //======================> 点赞api的优化 避免有些是重复的点赞！新增数据表了得
+
+  testAlreadySupport:({commentId,userId}) => post(`userSupport/test`, {commentId,userId}),
+
+  deleteUserSupport:({commentId,userId}) => post(`userSupport/delete`, {commentId,userId}),
+
+  insertUserSupport:({commentId,userId}) => post(`userSupport/insert`, {commentId,userId}),
+
   // =======================> 歌曲 API
   // 返回指定歌曲ID的歌曲
   getSongOfId: (id) => get(`song/detail?id=${id}`),
