@@ -11,5 +11,5 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: 123456
       MYSQL_DATABASE: tp_music
-      MYSQL_USER: myuser
+      MYSQL_USER: root
       MYSQL_PASSWORD: 123456

@@ -80,6 +80,16 @@ Thumbs.db
 dump.rdb
 minio.exe
 
+# 忽略构建产物
+music-client/dist/
+music-manage/dist/
+
+# 忽略日志文件
+music-server/logs/
+
+# 忽略压缩包
+*.zip
+
 # 确保 music-client 和 music-manage 的 assets 目录不被忽略
 !music-client/src/assets/
 !music-client/src/assets/**
