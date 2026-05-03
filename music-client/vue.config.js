@@ -11,7 +11,11 @@ module.exports = defineConfig({
     // 禁用主机检查，避免开发环境警告
     allowedHosts: 'all',
     // 启用 HTML5 History API 支持，解决刷新页面空白问题
-    historyApiFallback: true,
+    historyApiFallback: {
+      index: '/index.html',
+      disableDotRule: true,
+      htmlAcceptHeaders: ['text/html', 'application/xhtml+xml']
+    },
     // 配置代理解决跨域问题
     proxy: {
       '/img': {
